@@ -1,0 +1,391 @@
+﻿<Window x:Class="Kursovik.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Автоинспекция" Height="600" Width="1200" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+
+    <Window.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="LightSkyBlue" Offset="0.0"/>
+            <GradientStop Color="SteelBlue" Offset="1.0"/>
+        </LinearGradientBrush>
+    </Window.Background>
+
+    <Window.Resources>
+        <!-- Определяем стиль для DataGrid -->
+        <Style TargetType="DataGrid">
+            <Setter Property="AutoGenerateColumns" Value="True"/>
+            <Setter Property="CanUserResizeColumns" Value="False"/>
+            <Setter Property="CanUserResizeRows" Value="False"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="Margin" Value="220,10,10,0"/>
+            <Setter Property="ColumnWidth" Value="*"/>
+        </Style>
+
+        <!-- Стиль для заголовков столбцов DataGrid -->
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <!-- Стиль для ячеек DataGrid -->
+        <Style TargetType="DataGridCell">
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="10,5,10,5"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <!-- Логин форма -->
+        <Grid x:Name="LoginForm" Visibility="Visible" VerticalAlignment="Center" HorizontalAlignment="Center" Width="300">
+            <StackPanel>
+                <TextBlock Text="Логин" Margin="0,10,0,5" HorizontalAlignment="Center" FontSize="16" FontFamily="Arial" Foreground="White"/>
+                <TextBox x:Name="LoginTextBox" Height="30" HorizontalAlignment="Stretch" Margin="0,5,0,10" FontSize="14"/>
+                <TextBlock Text="Пароль" Margin="0,10,0,5" HorizontalAlignment="Center" FontSize="16" FontFamily="Arial" Foreground="White"/>
+                <PasswordBox x:Name="PasswordBox" Height="30" HorizontalAlignment="Stretch" Margin="0,5,0,10" FontSize="14"/>
+                <Button Content="Войти" Width="100" Height="40" HorizontalAlignment="Center" Click="LoginButton_Click" Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Главное окно с вкладками -->
+        <TabControl x:Name="MainTabControl" Visibility="Hidden" Background="Transparent" BorderThickness="0">
+            <TabControl.Resources>
+                <Style TargetType="TabItem">
+                    <Setter Property="FontFamily" Value="Arial"/>
+                    <Setter Property="FontSize" Value="14"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="Background" Value="DarkSlateBlue"/>
+                    <Setter Property="Padding" Value="10,5"/>
+                    <Setter Property="Margin" Value="5,0"/>
+                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                    <!-- Центровка по горизонтали -->
+                    <Setter Property="VerticalAlignment" Value="Center"/>
+                    <!-- Центровка по вертикали -->
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Foreground" Value="DarkSlateBlue"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Foreground" Value="DarkSlateBlue"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </TabControl.Resources>
+
+            <!-- Вкладка Владельцы автомобилей -->
+            <TabItem Header="Владельцы автомобилей">
+                <Grid Background="Transparent">
+                    <Button Content="Добавить владельца" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-400,0,0" 
+                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="AddOwnerButton_Click"/>
+                    <Button Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-300,0,0" 
+                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="ShowOwnersButton_Click">
+                        <TextBlock Text="Просмотреть всех владельцев" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Button>
+
+                    <!-- Таблица для отображения владельцев -->
+                    <DataGrid x:Name="OwnersDataGrid" AutoGenerateColumns="False" Margin="220,10,10,10" CanUserAddRows="False" IsReadOnly="False">
+                        <DataGrid.Columns>
+                            <!-- Определение столбцов для отображения данных владельцев -->
+                            <DataGridTextColumn Header="ФИО" Binding="{Binding FullName}" />
+                            <DataGridTextColumn Header="Номер ВУ" Binding="{Binding DriverLicenseNumber}" />
+                            <DataGridTextColumn Header="Адрес проживания" Binding="{Binding Address}" />
+                            <DataGridTextColumn Header="Телефон" Binding="{Binding PhoneNumber}" />
+                            <DataGridTextColumn Header="Дата рождения" Binding="{Binding BirthDate, StringFormat=\{0:yyyy-MM-dd\}}" />
+
+                            <!-- Кнопка Обновить -->
+                            <DataGridTemplateColumn Header="Обновить">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Обновить" Width="80" Click="UpdateOwnerButton_Click" Tag="{Binding OwnerId}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <!-- Кнопка Удалить -->
+                            <DataGridTemplateColumn Header="Удалить">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Удалить" Width="80" Click="DeleteOwnerButton_Click" CommandParameter="{Binding OwnerId}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Форма для добавления владельца -->
+                    <StackPanel x:Name="AddOwnerForm" Visibility="Collapsed" Margin="220,10,10,0">
+                        <TextBlock Text="ФИО"/>
+                        <TextBox x:Name="OwnerFIO"/>
+                        <TextBlock Text="Номер ВУ"/>
+                        <TextBox x:Name="OwnerDriverLicenseNumber"/>
+                        <TextBlock Text="Адрес проживания"/>
+                        <TextBox x:Name="OwnerAddress"/>
+                        <TextBlock Text="Телефон"/>
+                        <TextBox x:Name="OwnerPhone"/>
+                        <TextBlock Text="Дата рождения"/>
+                        <TextBox x:Name="OwnerDOB"/>
+                        <Button Content="Сохранить" Width="200" Height="40" Margin="0,15,0,0" 
+                    Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="SaveOwnerButton_Click"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+
+            <!-- Вкладка Автомобили -->
+            <TabItem Header="Автомобили">
+                <Grid Background="Transparent">
+                    <Button Content="Добавить автомобиль" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-400,0,0" 
+                    Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="AddCarButton_Click"/>
+                    <Button Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-300,0,0" 
+                    Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="ShowCarsButton_Click">
+                        <TextBlock Text="Просмотреть все автомобили" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Button>
+
+                    <!-- Таблица для отображения автомобилей -->
+                    <DataGrid x:Name="CarsDataGrid" AutoGenerateColumns="True" Margin="220,10,10,10" CanUserAddRows="False"/>
+
+                    <!-- Форма для добавления автомобиля -->
+                    <StackPanel x:Name="AddCarForm" Visibility="Collapsed" Margin="220,10,10,0">
+                        <TextBlock Text="VIN"/>
+                        <TextBox x:Name="CarVIN"/>
+                        <TextBlock Text="Марка"/>
+                        <TextBox x:Name="CarBrand"/>
+                        <TextBlock Text="Модель"/>
+                        <TextBox x:Name="CarModel"/>
+                        <TextBlock Text="Год выпуска"/>
+                        <TextBox x:Name="CarYear"/>
+                        <TextBlock Text="Цвет"/>
+                        <TextBox x:Name="CarColor"/>
+                        <TextBlock Text="Госномер"/>
+                        <TextBox x:Name="CarNumber"/>
+                        <TextBlock Text="ID владельца"/>
+                        <TextBox x:Name="OwnerID"/>
+                        <Button Content="Сохранить" Width="200" Height="40" Margin="0,15,0,0" 
+Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="SaveCarButton_Click"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Вкладка Сотрудники ГАИ -->
+            <TabItem Header="Сотрудники ГАИ">
+                <Grid Background="Transparent">
+                    <Button Content="Добавить сотрудника" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-400,0,0" 
+                    Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="AddPoliceOfficerButton_Click"/>
+                    <Button Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-300,0,0" 
+                    Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="ShowPoliceOfficersButton_Click">
+                        <TextBlock Text="Просмотреть всех сотрудников" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Button>
+
+                    <!-- Таблица для отображения сотрудников ГАИ -->
+                    <DataGrid x:Name="PoliceOfficersDataGrid" AutoGenerateColumns="True" Margin="220,10,10,10" CanUserAddRows="False"/>
+
+                    <!-- Форма для добавления сотрудника -->
+                    <StackPanel x:Name="AddPoliceOfficerForm" Visibility="Collapsed" Margin="220,10,10,0">
+                        <TextBlock Text="ФИО"/>
+                        <TextBox x:Name="PoliceOfficerFIO"/>
+                        <TextBlock Text="Должность"/>
+                        <TextBox x:Name="PoliceOfficerPosition"/>
+                        <TextBlock Text="Отдел"/>
+                        <TextBox x:Name="PoliceOfficerDepartment"/>
+                        <TextBlock Text="Контактные данные"/>
+                        <TextBox x:Name="PoliceOfficerContact"/>
+                        <Button Content="Сохранить" Width="200" Height="40" Margin="0,15,0,0" 
+Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="SavePoliceOfficerButton_Click"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Вкладка Сотрудники сервисных центров -->
+            <TabItem Header="Сотрудники сервисных центров">
+                <Grid Background="Transparent">
+                    <Button Content="Добавить сотрудника" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-400,0,0" 
+                            Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0"/>
+                    <Button Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-300,0,0" 
+                            Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="ShowServiceStaffButton_Click">
+                        <TextBlock Text="Просмотреть всех сотрудников" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Button>
+
+                    <!-- Таблица для отображения сотрудников сервисных центров -->
+                    <DataGrid x:Name="ServiceStaffDataGrid" AutoGenerateColumns="True" Margin="220,10,10,10" CanUserAddRows="False"/>
+
+                    <!-- Форма для добавления сотрудника -->
+                    <StackPanel x:Name="AddServiceStaffForm" Visibility="Collapsed" Margin="220,10,10,0">
+                        <TextBlock Text="ФИО"/>
+                        <TextBox x:Name="ServiceStaffFIO"/>
+                        <TextBlock Text="Должность"/>
+                        <TextBox x:Name="ServiceStaffPosition"/>
+                        <TextBlock Text="Контактные данные"/>
+                        <TextBox x:Name="ServiceStaffContact"/>
+                        <Button Content="Сохранить" Width="200" Height="40" Margin="0,15,0,0" 
+Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="SaveServiceStaffButton_Click"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Вкладка Техосмотры -->
+            <TabItem Header="Техосмотры">
+                <Grid Background="Transparent">
+                    <Button Content="Добавить техосмотр" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-400,0,0" 
+                            Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="AddInspectionButton_Click"/>
+                    <Button Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-300,0,0" 
+                            Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="ShowInspectionsButton_Click">
+                        <TextBlock Text="Просмотреть все техосмотры" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Button>
+
+                    <!-- Таблица для отображения техосмотров -->
+                    <DataGrid x:Name="InspectionsDataGrid" AutoGenerateColumns="True" Margin="220,10,10,10" CanUserAddRows="False"/>
+
+                    <!-- Форма для добавления техосмотра -->
+                    <StackPanel x:Name="AddInspectionForm" Visibility="Collapsed" Margin="220,10,10,0">
+                        <TextBlock Text="Дата техосмотра"/>
+                        <TextBox x:Name="InspectionDate"/>
+                        <TextBlock Text="Результат"/>
+                        <TextBox x:Name="InspectionResult"/>
+                        <TextBlock Text="Примечания"/>
+                        <TextBox x:Name="InspectionNotes"/>
+                        <TextBlock Text="VIN"/>
+                        <TextBox x:Name="InspectionVIN"/>
+                        <TextBlock Text="ID сотрудника сервисного центра"/>
+                        <TextBox x:Name="InspectionServiceEmployeeId"/>
+                        <Button Content="Сохранить" Width="200" Height="40" Margin="0,15,0,0" 
+                    Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="SaveInspectionButton_Click"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Вкладка Протоколы нарушений -->
+            <TabItem Header="Протоколы нарушений">
+                <Grid Background="Transparent">
+                    <Button Content="Добавить протокол" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-400,0,0" 
+                            Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="AddViolationButton_Click"/>
+                    <Button Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-300,0,0" 
+                            Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="ShowViolationsButton_Click">
+                        <TextBlock Text="Просмотреть все протоколы" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Button>
+
+                    <!-- Таблица для отображения протоколов -->
+                    <DataGrid x:Name="ViolationsDataGrid" AutoGenerateColumns="True" Margin="220,10,10,10" CanUserAddRows="False"/>
+
+                    <!-- Форма для добавления протокола -->
+                    <StackPanel x:Name="AddViolationForm" Visibility="Collapsed" Margin="220,10,10,0">
+                        <TextBlock Text="Дата нарушения"/>
+                        <TextBox x:Name="ViolationDate"/>
+                        <TextBlock Text="Тип нарушения"/>
+                        <TextBox x:Name="ViolationType"/>
+                        <TextBlock Text="Сумма штрафа"/>
+                        <TextBox x:Name="ViolationFine"/>
+                        <TextBlock Text="VIN автомобиля"/>
+                        <TextBox x:Name="ViolationCarVIN"/>
+                        <TextBlock Text="ID сотрудника ГИБДД"/>
+                        <TextBox x:Name="ViolationOfficerId"/>
+                        <Button Content="Сохранить" Width="200" Height="40" Margin="0,15,0,0" 
+                    Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="SaveViolationButton_Click"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Вкладка Сервисные центры -->
+            <TabItem Header="Сервисные центры">
+                <Grid Background="Transparent">
+                    <Button Content="Добавить сервисный центр" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-400,0,0" 
+                            Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="AddServiceCenterButton_Click"/>
+                    <Button Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-300,0,0" 
+                            Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="ShowServiceCentersButton_Click">
+                        <TextBlock Text="Просмотреть все сервисные центры" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Button>
+
+                    <!-- Таблица для отображения сервисных центров -->
+                    <DataGrid x:Name="ServiceCentersDataGrid" AutoGenerateColumns="True" Margin="220,10,10,10" CanUserAddRows="False"/>
+
+                    <!-- Форма для добавления сервисного центра -->
+                    <StackPanel x:Name="AddServiceCenterForm" Visibility="Collapsed" Margin="220,10,10,0">
+                        <TextBlock Text="Лицензия"/>
+                        <TextBox x:Name="ServiceCenterLicense"/>
+                        <TextBlock Text="Название"/>
+                        <TextBox x:Name="ServiceCenterName"/>
+                        <TextBlock Text="Адрес"/>
+                        <TextBox x:Name="ServiceCenterAddress"/>
+                        <TextBlock Text="Контактное лицо"/>
+                        <TextBox x:Name="ServiceCenterContactPerson"/>
+                        <Button Content="Сохранить" Width="200" Height="40" Margin="0,15,0,0" 
+Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="SaveServiceCenterButton_Click"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Вкладка Employment -->
+            <TabItem Header="Лицензии">
+                <Grid Background="Transparent">
+                    <!-- Кнопки для добавления и отображения всех записей -->
+                    <Button Content="Добавить связь" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-400,0,0" 
+                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="AddEmploymentButton_Click"/>
+                    <Button Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-300,0,0" 
+                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="ShowEmploymentButton_Click">
+                        <TextBlock Text="Просмотреть все связи" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Button>
+
+                    <!-- Таблица для отображения записей employment -->
+                    <DataGrid x:Name="EmploymentDataGrid" AutoGenerateColumns="True" Margin="220,10,10,10" CanUserAddRows="False"/>
+
+                    <!-- Форма для добавления новой записи в employment -->
+                    <StackPanel x:Name="AddEmploymentForm" Visibility="Collapsed" Margin="220,10,10,0">
+                        <TextBlock Text="Лицензия сервисного центра"/>
+                        <TextBox x:Name="EmploymentServiceCenterLicense"/>
+                        <TextBlock Text="ID сотрудника"/>
+                        <TextBox x:Name="EmploymentServiceEmployeeId"/>
+                        <Button Content="Сохранить" Width="200" Height="40" Margin="0,15,0,0" 
+                    Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="SaveEmploymentButton_Click"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- Добавляем новый раздел "Запросы" с 9 кнопками -->
+            <TabItem Header="Запросы">
+                <Grid Background="Transparent">
+                    <!-- Кнопка Запрос1 -->
+                    <Button Content="Запрос1" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-400,0,0" 
+                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="Request1Button_Click"/>
+
+                    <!-- Кнопка Запрос2 -->
+                    <Button Content="Запрос2" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-300,0,0" 
+                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="Request2Button_Click"/>
+
+                    <!-- Кнопка Запрос3 -->
+                    <Button Content="Запрос3" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-200,0,0" 
+                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="Request3Button_Click"/>
+
+                    <!-- Кнопка Запрос4 -->
+                    <Button Content="Запрос4" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-100,0,0" 
+                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="Request4Button_Click"/>
+
+                    <!-- Кнопка Запрос5 -->
+                    <Button Content="Запрос5" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,0,0,0" 
+                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="Request5Button_Click"/>
+
+                    <!-- Кнопка Запрос6 -->
+                    <Button Content="Запрос6" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,100,0,0" 
+                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="Request6Button_Click"/>
+
+                    <!-- Кнопка Запрос7 -->
+                    <Button Content="Запрос7" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,200,0,0" 
+                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="Request7Button_Click"/>
+
+                    <!-- Кнопка Запрос8 -->
+                    <Button Content="Запрос8" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,300,0,0" 
+                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="Request8Button_Click"/>
+
+                    <!-- Кнопка Запрос9 -->
+                    <Button Content="Запрос9" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,400,0,0" 
+                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="Request9Button_Click"/>
+
+                    <!-- Таблица для отображения результатов запросов -->
+                    <DataGrid x:Name="RequestsDataGrid" AutoGenerateColumns="True" Margin="220,10,10,10" IsReadOnly="True" ClipboardCopyMode="IncludeHeader"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>

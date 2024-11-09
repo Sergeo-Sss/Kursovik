@@ -1,0 +1,55 @@
+# Файлы и папки Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Файлы сборки
+bin/
+obj/
+TestResults/
+*.log
+
+# Папки настройки пакетов
+packages/
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Автоматически генерируемые файлы сборки
+*.dll
+*.pdb
+*.exe
+*.cache
+*.ilk
+*.log
+*.map
+*.obj
+*.pch
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tmp
+*.trx
+*.csproj.user
+*.gpState
+*.opendb
+*.pidb
+*.scc
+
+# Конфигурации
+app.config
+web.config
+appsettings.json
+
+# Резервные копии и временные файлы
+*.bak
+*.swp
+*~
+*.tmp
+*.temp
