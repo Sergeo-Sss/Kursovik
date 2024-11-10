@@ -210,6 +210,40 @@ namespace Kursovik
             MessageBox.Show("Автомобиль добавлен!");
             ShowCarsButton_Click(sender, e);
         }
+
+        private void UpdateCarButton_Click(object sender, RoutedEventArgs e)
+        {
+            CarsDataGrid.CommitEdit();
+            CarsDataGrid.CommitEdit(DataGridEditingUnit.Row, true);
+
+            if (sender is Button updateButton && updateButton.Tag is string vin)
+            {
+                var car = (Car)CarsDataGrid.SelectedItem;
+                if (car?.VIN != vin) return;
+
+                if (string.IsNullOrEmpty(car.Brand) || string.IsNullOrEmpty(car.Model) || car.Year == 0 ||
+                    string.IsNullOrEmpty(car.Color) || string.IsNullOrEmpty(car.LicensePlate) || car.OwnerID == 0)
+                {
+                    SystemSounds.Exclamation.Play();
+                    MessageBox.Show("Ошибка: Все поля должны быть заполнены!");
+                    return;
+                }
+
+                _dbHelper.UpdateCar(car);
+                MessageBox.Show("Данные автомобиля обновлены!");
+                LoadCars();
+            }
+        }
+
+        private void DeleteCarButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button deleteButton && deleteButton.CommandParameter is string vin)
+            {
+                _dbHelper.DeleteCar(vin);
+                MessageBox.Show("Автомобиль удален!");
+                LoadCars();
+            }
+        }
         #endregion
 
         #region Police Officers Tab
@@ -248,6 +282,40 @@ namespace Kursovik
             MessageBox.Show("Сотрудник ГИБДД добавлен!");
             ShowPoliceOfficersButton_Click(sender, e);
         }
+
+        private void UpdatePoliceOfficerButton_Click(object sender, RoutedEventArgs e)
+        {
+            PoliceOfficersDataGrid.CommitEdit();
+            PoliceOfficersDataGrid.CommitEdit(DataGridEditingUnit.Row, true);
+
+            if (sender is Button updateButton && updateButton.Tag is int officerId)
+            {
+                var officer = (PoliceOfficer)PoliceOfficersDataGrid.SelectedItem;
+                if (officer?.OfficerId != officerId) return;
+
+                if (string.IsNullOrEmpty(officer.FullName) || string.IsNullOrEmpty(officer.Position) ||
+                    string.IsNullOrEmpty(officer.Department) || string.IsNullOrEmpty(officer.ContactDetails))
+                {
+                    SystemSounds.Exclamation.Play();
+                    MessageBox.Show("Ошибка: Все поля должны быть заполнены!");
+                    return;
+                }
+
+                _dbHelper.UpdatePoliceOfficer(officer);
+                MessageBox.Show("Данные сотрудника ГАИ обновлены!");
+                LoadPoliceOfficers();
+            }
+        }
+
+        private void DeletePoliceOfficerButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button deleteButton && deleteButton.CommandParameter is int officerId)
+            {
+                _dbHelper.DeletePoliceOfficer(officerId);
+                MessageBox.Show("Сотрудник ГАИ удален!");
+                LoadPoliceOfficers();
+            }
+        }
         #endregion
 
         #region Service Staff Tab
@@ -283,6 +351,40 @@ namespace Kursovik
             _dbHelper.AddServiceStaff(newStaff);
             MessageBox.Show("Сотрудник сервисного центра добавлен!");
             ShowServiceStaffButton_Click(sender, e);
+        }
+
+        private void UpdateServiceStaffButton_Click(object sender, RoutedEventArgs e)
+        {
+            ServiceStaffDataGrid.CommitEdit();
+            ServiceStaffDataGrid.CommitEdit(DataGridEditingUnit.Row, true);
+
+            if (sender is Button updateButton && updateButton.Tag is int staffId)
+            {
+                var staff = (ServiceStaff)ServiceStaffDataGrid.SelectedItem;
+                if (staff?.StaffId != staffId) return;
+
+                if (string.IsNullOrEmpty(staff.FullName) || string.IsNullOrEmpty(staff.Position) ||
+                    string.IsNullOrEmpty(staff.ContactDetails))
+                {
+                    SystemSounds.Exclamation.Play();
+                    MessageBox.Show("Ошибка: Все поля должны быть заполнены!");
+                    return;
+                }
+
+                _dbHelper.UpdateServiceStaff(staff);
+                MessageBox.Show("Данные сотрудника сервисного центра обновлены!");
+                LoadServiceStaff();
+            }
+        }
+
+        private void DeleteServiceStaffButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button deleteButton && deleteButton.CommandParameter is int staffId)
+            {
+                _dbHelper.DeleteServiceStaff(staffId);
+                MessageBox.Show("Сотрудник сервисного центра удален!");
+                LoadServiceStaff();
+            }
         }
         #endregion
 
@@ -321,6 +423,39 @@ namespace Kursovik
             _dbHelper.AddInspection(newInspection);
             MessageBox.Show("Техосмотр добавлен!");
             ShowInspectionsButton_Click(sender, e);
+        }
+
+        private void UpdateInspectionButton_Click(object sender, RoutedEventArgs e)
+        {
+            InspectionsDataGrid.CommitEdit();
+            InspectionsDataGrid.CommitEdit(DataGridEditingUnit.Row, true);
+
+            if (sender is Button updateButton && updateButton.Tag is string vin)
+            {
+                var inspection = (Inspection)InspectionsDataGrid.SelectedItem;
+                if (inspection?.VIN != vin) return;
+
+                if (string.IsNullOrEmpty(inspection.InspectionDate) || string.IsNullOrEmpty(inspection.Result) || string.IsNullOrEmpty(inspection.VIN))
+                {
+                    SystemSounds.Exclamation.Play();
+                    MessageBox.Show("Ошибка: Все обязательные поля должны быть заполнены!");
+                    return;
+                }
+
+                _dbHelper.UpdateInspection(inspection);
+                MessageBox.Show("Данные техосмотра обновлены!");
+                LoadInspections();
+            }
+        }
+
+        private void DeleteInspectionButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button deleteButton && deleteButton.CommandParameter is string vin)
+            {
+                _dbHelper.DeleteInspection(vin);
+                MessageBox.Show("Техосмотр удален!");
+                LoadInspections();
+            }
         }
         #endregion
 
@@ -361,6 +496,40 @@ namespace Kursovik
             MessageBox.Show("Протокол добавлен!");
             ShowViolationsButton_Click(sender, e);
         }
+
+        private void UpdateViolationButton_Click(object sender, RoutedEventArgs e)
+        {
+            ViolationsDataGrid.CommitEdit();
+            ViolationsDataGrid.CommitEdit(DataGridEditingUnit.Row, true);
+
+            if (sender is Button updateButton && updateButton.Tag is int protocolNumber)
+            {
+                var violation = (Violation)ViolationsDataGrid.SelectedItem;
+                if (violation?.ProtocolNumber != protocolNumber) return;
+
+                if (string.IsNullOrEmpty(violation.IssueDate) || string.IsNullOrEmpty(violation.ViolationType) ||
+                    violation.FineAmount == 0 || string.IsNullOrEmpty(violation.VIN))
+                {
+                    SystemSounds.Exclamation.Play();
+                    MessageBox.Show("Ошибка: Все обязательные поля должны быть заполнены!");
+                    return;
+                }
+
+                _dbHelper.UpdateViolation(violation);
+                MessageBox.Show("Данные протокола обновлены!");
+                LoadViolations();
+            }
+        }
+
+        private void DeleteViolationButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button deleteButton && deleteButton.CommandParameter is int protocolNumber)
+            {
+                _dbHelper.DeleteViolation(protocolNumber);
+                MessageBox.Show("Протокол удален!");
+                LoadViolations();
+            }
+        }
         #endregion
 
         #region Service Centers Tab
@@ -398,6 +567,39 @@ namespace Kursovik
             _dbHelper.AddServiceCenter(newServiceCenter);
             MessageBox.Show("Сервисный центр добавлен!");
             ShowServiceCentersButton_Click(sender, e);
+        }
+
+        private void UpdateServiceCenterButton_Click(object sender, RoutedEventArgs e)
+        {
+            ServiceCentersDataGrid.CommitEdit();
+            ServiceCentersDataGrid.CommitEdit(DataGridEditingUnit.Row, true);
+
+            if (sender is Button updateButton && updateButton.Tag is string license)
+            {
+                var center = (ServiceCenter)ServiceCentersDataGrid.SelectedItem;
+                if (center?.License != license) return;
+
+                if (string.IsNullOrEmpty(center.Name) || string.IsNullOrEmpty(center.Address) || string.IsNullOrEmpty(center.ContactPerson))
+                {
+                    SystemSounds.Exclamation.Play();
+                    MessageBox.Show("Ошибка: Все поля должны быть заполнены!");
+                    return;
+                }
+
+                _dbHelper.UpdateServiceCenter(center);
+                MessageBox.Show("Данные сервисного центра обновлены!");
+                LoadServiceCenters();
+            }
+        }
+
+        private void DeleteServiceCenterButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button deleteButton && deleteButton.CommandParameter is string license)
+            {
+                _dbHelper.DeleteServiceCenter(license);
+                MessageBox.Show("Сервисный центр удален!");
+                LoadServiceCenters();
+            }
         }
         #endregion
 
@@ -439,6 +641,39 @@ namespace Kursovik
             _dbHelper.AddEmployment(newEmployment);
             MessageBox.Show("Связь добавлена!");
             ShowEmploymentButton_Click(sender, e);
+        }
+
+        private void UpdateEmploymentButton_Click(object sender, RoutedEventArgs e)
+        {
+            EmploymentDataGrid.CommitEdit();
+            EmploymentDataGrid.CommitEdit(DataGridEditingUnit.Row, true);
+
+            if (sender is Button updateButton && updateButton.Tag is string license)
+            {
+                var employment = (Employment)EmploymentDataGrid.SelectedItem;
+                if (employment?.ServiceCenterLicense != license) return;
+
+                if (string.IsNullOrEmpty(employment.ServiceCenterLicense) || employment.ServiceEmployeeId == 0)
+                {
+                    SystemSounds.Exclamation.Play();
+                    MessageBox.Show("Ошибка: Все поля должны быть заполнены!");
+                    return;
+                }
+
+                _dbHelper.UpdateEmployment(employment);
+                MessageBox.Show("Данные связи обновлены!");
+                LoadEmployment();
+            }
+        }
+
+        private void DeleteEmploymentButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button deleteButton && deleteButton.CommandParameter is string license)
+            {
+                _dbHelper.DeleteEmployment(license);
+                MessageBox.Show("Связь удалена!");
+                LoadEmployment();
+            }
         }
         #endregion
 

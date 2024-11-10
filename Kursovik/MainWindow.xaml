@@ -146,7 +146,35 @@
                     </Button>
 
                     <!-- Таблица для отображения автомобилей -->
-                    <DataGrid x:Name="CarsDataGrid" AutoGenerateColumns="True" Margin="220,10,10,10" CanUserAddRows="False"/>
+                    <DataGrid x:Name="CarsDataGrid" AutoGenerateColumns="False" Margin="220,10,10,10" CanUserAddRows="False" IsReadOnly="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="VIN" Binding="{Binding VIN}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Марка" Binding="{Binding Brand}"/>
+                            <DataGridTextColumn Header="Модель" Binding="{Binding Model}"/>
+                            <DataGridTextColumn Header="Год выпуска" Binding="{Binding Year}"/>
+                            <DataGridTextColumn Header="Цвет" Binding="{Binding Color}"/>
+                            <DataGridTextColumn Header="Госномер" Binding="{Binding LicensePlate}"/>
+                            <DataGridTextColumn Header="ID владельца" Binding="{Binding OwnerID}"/>
+
+                            <!-- Кнопка Обновить -->
+                            <DataGridTemplateColumn Header="Обновить">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Обновить" Width="80" Click="UpdateCarButton_Click" Tag="{Binding VIN}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <!-- Кнопка Удалить -->
+                            <DataGridTemplateColumn Header="Удалить">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Удалить" Width="80" Click="DeleteCarButton_Click" CommandParameter="{Binding VIN}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
 
                     <!-- Форма для добавления автомобиля -->
                     <StackPanel x:Name="AddCarForm" Visibility="Collapsed" Margin="220,10,10,0">
@@ -181,7 +209,33 @@ Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" Bo
                     </Button>
 
                     <!-- Таблица для отображения сотрудников ГАИ -->
-                    <DataGrid x:Name="PoliceOfficersDataGrid" AutoGenerateColumns="True" Margin="220,10,10,10" CanUserAddRows="False"/>
+                    <DataGrid x:Name="PoliceOfficersDataGrid" AutoGenerateColumns="False" Margin="220,10,10,10" CanUserAddRows="False" IsReadOnly="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ID сотрудника" Binding="{Binding OfficerId}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="ФИО" Binding="{Binding FullName}"/>
+                            <DataGridTextColumn Header="Должность" Binding="{Binding Position}"/>
+                            <DataGridTextColumn Header="Отдел" Binding="{Binding Department}"/>
+                            <DataGridTextColumn Header="Контактные данные" Binding="{Binding ContactDetails}"/>
+
+                            <!-- Кнопка Обновить -->
+                            <DataGridTemplateColumn Header="Обновить">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Обновить" Width="80" Click="UpdatePoliceOfficerButton_Click" Tag="{Binding OfficerId}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <!-- Кнопка Удалить -->
+                            <DataGridTemplateColumn Header="Удалить">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Удалить" Width="80" Click="DeletePoliceOfficerButton_Click" CommandParameter="{Binding OfficerId}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
 
                     <!-- Форма для добавления сотрудника -->
                     <StackPanel x:Name="AddPoliceOfficerForm" Visibility="Collapsed" Margin="220,10,10,0">
@@ -210,7 +264,32 @@ Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" Bo
                     </Button>
 
                     <!-- Таблица для отображения сотрудников сервисных центров -->
-                    <DataGrid x:Name="ServiceStaffDataGrid" AutoGenerateColumns="True" Margin="220,10,10,10" CanUserAddRows="False"/>
+                    <DataGrid x:Name="ServiceStaffDataGrid" AutoGenerateColumns="False" Margin="220,10,10,10" CanUserAddRows="False" IsReadOnly="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ID сотрудника" Binding="{Binding StaffId}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="ФИО" Binding="{Binding FullName}"/>
+                            <DataGridTextColumn Header="Должность" Binding="{Binding Position}"/>
+                            <DataGridTextColumn Header="Контактные данные" Binding="{Binding ContactDetails}"/>
+
+                            <!-- Кнопка Обновить -->
+                            <DataGridTemplateColumn Header="Обновить">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Обновить" Width="80" Click="UpdateServiceStaffButton_Click" Tag="{Binding StaffId}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <!-- Кнопка Удалить -->
+                            <DataGridTemplateColumn Header="Удалить">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Удалить" Width="80" Click="DeleteServiceStaffButton_Click" CommandParameter="{Binding StaffId}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
 
                     <!-- Форма для добавления сотрудника -->
                     <StackPanel x:Name="AddServiceStaffForm" Visibility="Collapsed" Margin="220,10,10,0">
@@ -237,7 +316,33 @@ Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" Bo
                     </Button>
 
                     <!-- Таблица для отображения техосмотров -->
-                    <DataGrid x:Name="InspectionsDataGrid" AutoGenerateColumns="True" Margin="220,10,10,10" CanUserAddRows="False"/>
+                    <DataGrid x:Name="InspectionsDataGrid" AutoGenerateColumns="False" Margin="220,10,10,10" CanUserAddRows="False" IsReadOnly="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Дата техосмотра" Binding="{Binding InspectionDate}"/>
+                            <DataGridTextColumn Header="Результат" Binding="{Binding Result}"/>
+                            <DataGridTextColumn Header="Примечания" Binding="{Binding Notes}"/>
+                            <DataGridTextColumn Header="VIN" Binding="{Binding VIN}"/>
+                            <DataGridTextColumn Header="ID сотрудника СЦ" Binding="{Binding ServiceEmployeeId}"/>
+
+                            <!-- Кнопка Обновить -->
+                            <DataGridTemplateColumn Header="Обновить">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Обновить" Width="80" Click="UpdateInspectionButton_Click" Tag="{Binding VIN}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <!-- Кнопка Удалить -->
+                            <DataGridTemplateColumn Header="Удалить">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Удалить" Width="80" Click="DeleteInspectionButton_Click" CommandParameter="{Binding VIN}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
 
                     <!-- Форма для добавления техосмотра -->
                     <StackPanel x:Name="AddInspectionForm" Visibility="Collapsed" Margin="220,10,10,0">
@@ -268,7 +373,35 @@ Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" Bo
                     </Button>
 
                     <!-- Таблица для отображения протоколов -->
-                    <DataGrid x:Name="ViolationsDataGrid" AutoGenerateColumns="True" Margin="220,10,10,10" CanUserAddRows="False"/>
+                    <DataGrid x:Name="ViolationsDataGrid" AutoGenerateColumns="False" Margin="220,10,10,10" CanUserAddRows="False" IsReadOnly="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Номер протокола" Binding="{Binding ProtocolNumber}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Дата нарушения" Binding="{Binding IssueDate}"/>
+                            <DataGridTextColumn Header="Тип нарушения" Binding="{Binding ViolationType}"/>
+                            <DataGridTextColumn Header="Сумма штрафа" Binding="{Binding FineAmount}"/>
+                            <DataGridTextColumn Header="VIN автомобиля" Binding="{Binding VIN}"/>
+                            <DataGridTextColumn Header="ID сотрудника ГАИ" Binding="{Binding OfficerId}"/>
+
+                            <!-- Кнопка Обновить -->
+                            <DataGridTemplateColumn Header="Обновить">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Обновить" Width="80" Click="UpdateViolationButton_Click" Tag="{Binding ProtocolNumber}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <!-- Кнопка Удалить -->
+                            <DataGridTemplateColumn Header="Удалить">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Удалить" Width="80" Click="DeleteViolationButton_Click" CommandParameter="{Binding ProtocolNumber}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
 
                     <!-- Форма для добавления протокола -->
                     <StackPanel x:Name="AddViolationForm" Visibility="Collapsed" Margin="220,10,10,0">
@@ -299,7 +432,32 @@ Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" Bo
                     </Button>
 
                     <!-- Таблица для отображения сервисных центров -->
-                    <DataGrid x:Name="ServiceCentersDataGrid" AutoGenerateColumns="True" Margin="220,10,10,10" CanUserAddRows="False"/>
+                    <DataGrid x:Name="ServiceCentersDataGrid" AutoGenerateColumns="False" Margin="220,10,10,10" CanUserAddRows="False" IsReadOnly="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Лицензия" Binding="{Binding License}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Название" Binding="{Binding Name}"/>
+                            <DataGridTextColumn Header="Адрес" Binding="{Binding Address}"/>
+                            <DataGridTextColumn Header="Контактное лицо" Binding="{Binding ContactPerson}"/>
+
+                            <!-- Кнопка Обновить -->
+                            <DataGridTemplateColumn Header="Обновить">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Обновить" Width="80" Click="UpdateServiceCenterButton_Click" Tag="{Binding License}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <!-- Кнопка Удалить -->
+                            <DataGridTemplateColumn Header="Удалить">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Удалить" Width="80" Click="DeleteServiceCenterButton_Click" CommandParameter="{Binding License}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
 
                     <!-- Форма для добавления сервисного центра -->
                     <StackPanel x:Name="AddServiceCenterForm" Visibility="Collapsed" Margin="220,10,10,0">
@@ -318,18 +476,41 @@ Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" Bo
             </TabItem>
 
             <!-- Вкладка Employment -->
-            <TabItem Header="Лицензии">
+            <TabItem Header="Работа">
                 <Grid Background="Transparent">
                     <!-- Кнопки для добавления и отображения всех записей -->
-                    <Button Content="Добавить связь" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-400,0,0" 
+                    <Button Content="Добавить работу" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-400,0,0" 
                 Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="AddEmploymentButton_Click"/>
                     <Button Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-300,0,0" 
                 Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="ShowEmploymentButton_Click">
-                        <TextBlock Text="Просмотреть все связи" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Просмотреть список работ" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     </Button>
 
                     <!-- Таблица для отображения записей employment -->
-                    <DataGrid x:Name="EmploymentDataGrid" AutoGenerateColumns="True" Margin="220,10,10,10" CanUserAddRows="False"/>
+                    <DataGrid x:Name="EmploymentDataGrid" AutoGenerateColumns="False" Margin="220,10,10,10" CanUserAddRows="False" IsReadOnly="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Лицензия СЦ" Binding="{Binding ServiceCenterLicense}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="ID сотрудника" Binding="{Binding ServiceEmployeeId}"/>
+
+                            <!-- Кнопка Обновить -->
+                            <DataGridTemplateColumn Header="Обновить">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Обновить" Width="80" Click="UpdateEmploymentButton_Click" Tag="{Binding ServiceCenterLicense}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <!-- Кнопка Удалить -->
+                            <DataGridTemplateColumn Header="Удалить">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Удалить" Width="80" Click="DeleteEmploymentButton_Click" CommandParameter="{Binding ServiceCenterLicense}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
 
                     <!-- Форма для добавления новой записи в employment -->
                     <StackPanel x:Name="AddEmploymentForm" Visibility="Collapsed" Margin="220,10,10,0">

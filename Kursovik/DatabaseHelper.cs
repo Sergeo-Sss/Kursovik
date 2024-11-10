@@ -188,6 +188,41 @@ namespace Kursovik
                 }
             }
         }
+
+        public void UpdateCar(Car car)
+        {
+            string query = "UPDATE autoinspection.cars SET brand = @Brand, model = @Model, year = @Year, color = @Color, license_plate = @LicensePlate, owner_id = @OwnerID WHERE vin = @VIN";
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                using (var command = new NpgsqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Brand", car.Brand);
+                    command.Parameters.AddWithValue("@Model", car.Model);
+                    command.Parameters.AddWithValue("@Year", car.Year);
+                    command.Parameters.AddWithValue("@Color", car.Color);
+                    command.Parameters.AddWithValue("@LicensePlate", car.LicensePlate);
+                    command.Parameters.AddWithValue("@OwnerID", car.OwnerID);
+                    command.Parameters.AddWithValue("@VIN", car.VIN);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void DeleteCar(string vin)
+        {
+            string query = "DELETE FROM autoinspection.cars WHERE vin = @VIN";
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                using (var command = new NpgsqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@VIN", vin);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
         #endregion
 
         #region PoliceOfficers Methods
@@ -237,6 +272,39 @@ namespace Kursovik
                 }
             }
         }
+
+        public void UpdatePoliceOfficer(PoliceOfficer officer)
+        {
+            string query = "UPDATE autoinspection.trafficofficers SET full_name = @FullName, position = @Position, department = @Department, contact_details = @ContactDetails WHERE officer_id = @OfficerId";
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                using (var command = new NpgsqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@FullName", officer.FullName);
+                    command.Parameters.AddWithValue("@Position", officer.Position);
+                    command.Parameters.AddWithValue("@Department", officer.Department);
+                    command.Parameters.AddWithValue("@ContactDetails", officer.ContactDetails);
+                    command.Parameters.AddWithValue("@OfficerId", officer.OfficerId);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void DeletePoliceOfficer(int officerId)
+        {
+            string query = "DELETE FROM autoinspection.trafficofficers WHERE officer_id = @OfficerId";
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                using (var command = new NpgsqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@OfficerId", officerId);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
         #endregion
 
         #region ServiceStaff Methods
@@ -284,6 +352,38 @@ namespace Kursovik
                 }
             }
         }
+
+        public void UpdateServiceStaff(ServiceStaff staff)
+        {
+            string query = "UPDATE autoinspection.serviceemployees SET full_name = @FullName, position = @Position, contact_details = @ContactDetails WHERE employee_id = @StaffId";
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                using (var command = new NpgsqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@FullName", staff.FullName);
+                    command.Parameters.AddWithValue("@Position", staff.Position);
+                    command.Parameters.AddWithValue("@ContactDetails", staff.ContactDetails);
+                    command.Parameters.AddWithValue("@StaffId", staff.StaffId);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void DeleteServiceStaff(int staffId)
+        {
+            string query = "DELETE FROM autoinspection.serviceemployees WHERE employee_id = @StaffId";
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                using (var command = new NpgsqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@StaffId", staffId);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
         #endregion
 
         #region Inspections Methods
@@ -334,6 +434,39 @@ namespace Kursovik
                 }
             }
         }
+
+        public void UpdateInspection(Inspection inspection)
+        {
+            string query = "UPDATE autoinspection.inspections SET inspection_date = @InspectionDate, result = @Result, notes = @Notes, service_employee_id = @ServiceEmployeeId WHERE vin = @VIN";
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                using (var command = new NpgsqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@InspectionDate", DateTime.Parse(inspection.InspectionDate));
+                    command.Parameters.AddWithValue("@Result", inspection.Result);
+                    command.Parameters.AddWithValue("@Notes", inspection.Notes);
+                    command.Parameters.AddWithValue("@ServiceEmployeeId", inspection.ServiceEmployeeId.HasValue ? (object)inspection.ServiceEmployeeId.Value : DBNull.Value);
+                    command.Parameters.AddWithValue("@VIN", inspection.VIN);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void DeleteInspection(string vin)
+        {
+            string query = "DELETE FROM autoinspection.inspections WHERE vin = @VIN";
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                using (var command = new NpgsqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@VIN", vin);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
         #endregion
 
         #region Violations Methods
@@ -385,6 +518,39 @@ namespace Kursovik
                 }
             }
         }
+
+        public void UpdateViolation(Violation violation)
+        {
+            string query = "UPDATE autoinspection.protocols SET issue_date = @IssueDate, violation_type = @ViolationType, fine_amount = @FineAmount, officer_id = @OfficerId WHERE protocol_number = @ProtocolNumber";
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                using (var command = new NpgsqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@IssueDate", DateTime.Parse(violation.IssueDate));
+                    command.Parameters.AddWithValue("@ViolationType", violation.ViolationType);
+                    command.Parameters.AddWithValue("@FineAmount", violation.FineAmount);
+                    command.Parameters.AddWithValue("@OfficerId", violation.OfficerId.HasValue ? (object)violation.OfficerId.Value : DBNull.Value);
+                    command.Parameters.AddWithValue("@ProtocolNumber", violation.ProtocolNumber);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void DeleteViolation(int protocolNumber)
+        {
+            string query = "DELETE FROM autoinspection.protocols WHERE protocol_number = @ProtocolNumber";
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                using (var command = new NpgsqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ProtocolNumber", protocolNumber);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
         #endregion
 
         #region ServiceCenters Methods
@@ -433,6 +599,38 @@ namespace Kursovik
                 }
             }
         }
+
+        public void UpdateServiceCenter(ServiceCenter center)
+        {
+            string query = "UPDATE autoinspection.servicecenters SET name = @Name, address = @Address, contact_person = @ContactPerson WHERE license = @License";
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                using (var command = new NpgsqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Name", center.Name);
+                    command.Parameters.AddWithValue("@Address", center.Address);
+                    command.Parameters.AddWithValue("@ContactPerson", center.ContactPerson);
+                    command.Parameters.AddWithValue("@License", center.License);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void DeleteServiceCenter(string license)
+        {
+            string query = "DELETE FROM autoinspection.servicecenters WHERE license = @License";
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                using (var command = new NpgsqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@License", license);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
         #endregion
 
         #region Employment Methods
@@ -477,6 +675,36 @@ namespace Kursovik
                 }
             }
         }
+
+        public void UpdateEmployment(Employment employment)
+        {
+            string query = "UPDATE autoinspection.employment SET service_employee_id = @ServiceEmployeeId WHERE service_center_license = @ServiceCenterLicense";
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                using (var command = new NpgsqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ServiceEmployeeId", employment.ServiceEmployeeId);
+                    command.Parameters.AddWithValue("@ServiceCenterLicense", employment.ServiceCenterLicense);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void DeleteEmployment(string serviceCenterLicense)
+        {
+            string query = "DELETE FROM autoinspection.employment WHERE service_center_license = @ServiceCenterLicense";
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                using (var command = new NpgsqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ServiceCenterLicense", serviceCenterLicense);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
         #endregion
     }
 }
