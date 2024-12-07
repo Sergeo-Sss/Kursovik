@@ -77,40 +77,48 @@ namespace Kursovik
             {
                 try
                 {
-                    // Формирование строки подключения на основе введённых данных
+                    // Формируем строку подключения
                     string connectionString = $"Host=172.20.7.54;Port=5432;Username={userLogin};Password={userPassword};Database=db2093_01";
 
-                    // Проверяем подключение
                     using (var connection = new Npgsql.NpgsqlConnection(connectionString))
                     {
                         connection.Open();
 
-                        //// Успешное подключение
-                        //MessageBox.Show("Подключение успешно!");
-
                         LoginForm.Visibility = Visibility.Hidden;
                         MainTabControl.Visibility = Visibility.Visible;
 
-                        // Сохраняем подключение в _dbHelper для дальнейшей работы
+                        // Инициализируем DatabaseHelper
                         _dbHelper = new DatabaseHelper(connectionString);
 
-                        //TODO здесь думать
-                        LoadOwners();
-                        LoadCars();
-                        LoadPoliceOfficers();
-                        LoadServiceStaff();
-                        LoadInspections();
-                        LoadServiceCenters();
-                        LoadViolations();
-                        LoadEmployment();
+                        // Проверяем права доступа
+                        ConfigureButtonAccess();
 
-                        // Отображаем таблицу владельцев при входе по умолчанию
-                        ShowOwnersButton_Click(sender, e);
+                        // Загружаем данные только для доступных таблиц
+                        if (isTabItemEnabled("Владельцы автомобилей")) LoadOwners();
+                        if (isTabItemEnabled("Автомобили")) LoadCars();
+                        if (isTabItemEnabled("Сотрудники ГАИ")) LoadPoliceOfficers();
+                        if (isTabItemEnabled("Сотрудники сервисных центров")) LoadServiceStaff();
+                        if (isTabItemEnabled("Техосмотры")) LoadInspections();
+                        if (isTabItemEnabled("Сервисные центры")) LoadServiceCenters();
+                        if (isTabItemEnabled("Протоколы нарушений")) LoadViolations();
+                        if (isTabItemEnabled("Работа")) LoadEmployment();
+
+                        // Отображаем таблицу владельцев, если доступна
+                        if (isTabItemEnabled("Владельцы автомобилей"))
+                        {
+                            ShowOwnersButton_Click(sender, e);
+                        }
+                        else
+                        {
+                            ShowServiceStaffButton_Click(sender, e);
+                        }
+
+                        //Проверяем доступ к запросам
+                        RequestsCheckAuthority();
                     }
                 }
                 catch (Exception ex)
                 {
-                    // Обработка ошибки подключения
                     SystemSounds.Exclamation.Play();
                     MessageBox.Show($"Ошибка подключения: {ex.Message}");
                 }
@@ -121,6 +129,96 @@ namespace Kursovik
                 MessageBox.Show("Введите логин и пароль!");
             }
         }
+        private bool isTabItemEnabled(string header)
+        {
+            foreach (TabItem tabItem in MainTabControl.Items)
+            {
+                if (tabItem.Header.ToString() == header)
+                {
+                    return tabItem.IsVisible;
+                }
+            }
+            return false;
+        }
+
+        private void ConfigureButtonAccess()
+        {
+            try
+            {
+                SetTabItemByHeader("Владельцы автомобилей", _dbHelper.HasSelectPermission("owners"));
+                SetTabItemByHeader("Автомобили", _dbHelper.HasSelectPermission("cars"));
+                SetTabItemByHeader("Сотрудники ГАИ", _dbHelper.HasSelectPermission("trafficofficers"));
+                SetTabItemByHeader("Сотрудники сервисных центров", _dbHelper.HasSelectPermission("serviceemployees"));
+                SetTabItemByHeader("Техосмотры", _dbHelper.HasSelectPermission("inspections"));
+                SetTabItemByHeader("Сервисные центры", _dbHelper.HasSelectPermission("servicecenters"));
+                SetTabItemByHeader("Протоколы нарушений", _dbHelper.HasSelectPermission("protocols"));
+                SetTabItemByHeader("Работа", _dbHelper.HasSelectPermission("employment"));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка проверки прав доступа: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private TabItem SetTabItemByHeader(string header, bool hasAccess)
+        {
+            foreach (TabItem tabItem in MainTabControl.Items)
+            {
+                if (tabItem.Header.ToString() == header)
+                {
+                    tabItem.Visibility = (hasAccess) ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+                    return tabItem;
+                }
+            }
+            return null;
+        }
+
+        private Button SetButtonByName(string buttonContent, bool hasAccess)
+        {
+            // Фиксированный заголовок вкладки
+            string tabHeader = "Запросы";
+
+            foreach (TabItem tabItem in MainTabControl.Items)
+            {
+                // Ищем TabItem с заголовком "Запросы"
+                if (tabItem.Header != null && tabItem.Header.ToString() == tabHeader)
+                {
+                    // Проверяем, является ли содержимое TabItem контейнером, например Grid
+                    if (tabItem.Content is Panel panel)
+                    {
+                        // Рекурсивный поиск кнопки внутри контейнера
+                        foreach (var child in panel.Children)
+                        {
+                            if (child is Button button && button.Content?.ToString() == buttonContent)
+                            {
+                                // Меняем видимость кнопки
+                                button.Visibility = hasAccess ? Visibility.Visible : Visibility.Collapsed;
+                                return button;
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        private void RequestsCheckAuthority()
+        {
+            try
+            {
+                SetButtonByName("Не прошедшие техосмотр", _dbHelper.HasSelectPermission("owners", "SELECT"));
+                SetButtonByName("Дорогие иномарки", _dbHelper.HasSelectPermission("cars"));
+                SetButtonByName("Техосмотры в СЦ", _dbHelper.HasSelectPermission("trafficofficers", "SELECT"));
+                SetButtonByName("Протоколы сотрудника", _dbHelper.HasSelectPermission("cars"));
+                SetButtonByName("Участники ДТП", _dbHelper.HasSelectPermission("cars"));
+                SetButtonByName("Получить логи", _dbHelper.HasSelectPermission("logs"));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка проверки прав доступа: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         #endregion
 
         #endregion

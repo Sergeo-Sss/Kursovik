@@ -748,5 +748,30 @@ namespace Kursovik
 
         #endregion
 
+        public bool HasSelectPermission(string tableName, string variant = null)
+        {
+            if (variant == null) variant = "UPDATE";
+
+            try
+            {
+                using (var connection = new NpgsqlConnection(_connectionString))
+                {
+                    connection.Open();
+
+                    string query = $@"
+                SELECT has_table_privilege(current_user, 'autoinspection.{tableName}', '{variant}')";
+
+                    using (var command = new NpgsqlCommand(query, connection))
+                    {
+                        var result = command.ExecuteScalar();
+                        return result != null && (bool)result;
+                    }
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }
