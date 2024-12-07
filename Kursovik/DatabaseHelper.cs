@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows;
+using Newtonsoft.Json;
 
 namespace Kursovik
 {
@@ -558,5 +559,194 @@ namespace Kursovik
             });
         }
         #endregion
+
+        #region Request Methods
+
+        public List<FailedInspectionOwner> GetFailedInspectionOwners()
+        {
+            var result = new List<FailedInspectionOwner>();
+            string query = "SELECT * FROM autoinspection.failed_inspection_owners";
+
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                using (var command = new NpgsqlCommand(query, connection))
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        result.Add(new FailedInspectionOwner
+                        {
+                            OwnerName = reader.GetString(0),
+                            ContactNumber = reader.GetString(1),
+                            CarBrand = reader.GetString(2),
+                            CarModel = reader.GetString(3),
+                            FailedDate = reader.GetDateTime(4)
+                        });
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public List<LuxuryCarOwner> GetLuxuryCarOwners()
+        {
+            var result = new List<LuxuryCarOwner>();
+            string query = "SELECT * FROM autoinspection.luxury_car_owners";
+
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                using (var command = new NpgsqlCommand(query, connection))
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        result.Add(new LuxuryCarOwner
+                        {
+                            OwnerName = reader.GetString(0),
+                            ContactNumber = reader.GetString(1),
+                            CarBrand = reader.GetString(2),
+                            CarModel = reader.GetString(3),
+                            CarYear = reader.GetInt32(4),
+                            CarColor = reader.GetString(5)
+                        });
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public List<ServiceCenterInspection> GetServiceCenterInspections()
+        {
+            var result = new List<ServiceCenterInspection>();
+            string query = "SELECT * FROM autoinspection.inspections_by_service_center";
+
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                using (var command = new NpgsqlCommand(query, connection))
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        result.Add(new ServiceCenterInspection
+                        {
+                            ServiceCenterName = reader.GetString(0),
+                            InspectionDate = reader.GetDateTime(1),
+                            InspectionResult = reader.GetString(2),
+                            CarVin = reader.GetString(3),
+                            CarBrand = reader.GetString(4),
+                            CarModel = reader.GetString(5),
+                            EmployeeName = reader.GetString(6)
+                        });
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public List<OfficerProtocol> GetOfficerProtocols()
+        {
+            var result = new List<OfficerProtocol>();
+            string query = "SELECT * FROM autoinspection.protocols_by_officer";
+
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                using (var command = new NpgsqlCommand(query, connection))
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        result.Add(new OfficerProtocol
+                        {
+                            OfficerName = reader.GetString(0),
+                            OfficerDepartment = reader.GetString(1),
+                            ProtocolNumber = reader.GetInt32(2),
+                            IssueDate = reader.GetDateTime(3),
+                            ViolationType = reader.GetString(4),
+                            FineAmount = reader.GetInt32(5),
+                            CarVin = reader.GetString(6),
+                            CarBrand = reader.GetString(7),
+                            CarModel = reader.GetString(8)
+                        });
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public List<AccidentParticipant> GetAccidentParticipants()
+        {
+            var result = new List<AccidentParticipant>();
+            string query = "SELECT * FROM autoinspection.accident_participants";
+
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                using (var command = new NpgsqlCommand(query, connection))
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        result.Add(new AccidentParticipant
+                        {
+                            OwnerName = reader.GetString(0),
+                            ContactNumber = reader.GetString(1),
+                            CarVin = reader.GetString(2),
+                            CarBrand = reader.GetString(3),
+                            CarModel = reader.GetString(4),
+                            AccidentDate = reader.GetDateTime(5),
+                            AccidentDetails = reader.GetString(6)
+                        });
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public List<LogEntry> GetLogs(string filterTableName = null, string filterActionType = null, DateTime? filterStartTime = null, DateTime? filterEndTime = null)
+        {
+            var result = new List<LogEntry>();
+
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                // Вызываем функцию без параметров или с параметрами при необходимости:
+                using (var cmd = new NpgsqlCommand("SELECT autoinspection.fetch_logs(@filterTableName, @filterActionType, @filterStartTime, @filterEndTime)", conn))
+                {
+                    cmd.Parameters.AddWithValue("filterTableName", (object)filterTableName ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("filterActionType", (object)filterActionType ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("filterStartTime", (object)filterStartTime ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("filterEndTime", (object)filterEndTime ?? DBNull.Value);
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            // Колонка 0 содержит jsonb, приводим к строке:
+                            var json = reader.GetString(0);
+
+                            // Десериализуем JSON в объект LogEntry
+                            var logEntry = JsonConvert.DeserializeObject<LogEntry>(json);
+
+                            if (logEntry != null)
+                                result.Add(logEntry);
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        #endregion
+
     }
 }

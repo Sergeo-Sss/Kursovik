@@ -2,12 +2,14 @@
 using System.Media;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace Kursovik
 {
     public partial class MainWindow : Window
     {
         private DatabaseHelper _dbHelper;
+        private Button _activeButton;
 
         public MainWindow()
         {
@@ -694,50 +696,102 @@ namespace Kursovik
         #endregion
 
         #region Request Methods
+
+        private void RequestButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button clickedButton)
+            {
+                // Сбрасываем цвета предыдущей активной кнопки
+                if (_activeButton != null)
+                {
+                    _activeButton.Background = new SolidColorBrush(Colors.DarkSlateBlue);
+                    _activeButton.Foreground = new SolidColorBrush(Colors.White);
+                }
+
+                // Устанавливаем новую активную кнопку
+                _activeButton = clickedButton;
+
+                // Меняем цвета активной кнопки
+                _activeButton.Background = new SolidColorBrush(Colors.White);
+                _activeButton.Foreground = new SolidColorBrush(Colors.DarkSlateBlue);
+
+                // Выполняем соответствующий запрос
+                ExecuteRequest(_activeButton.Tag.ToString());
+            }
+        }
+
+        private void ExecuteRequest(string requestId)
+        {
+            switch (requestId)
+            {
+                case "1":
+                    Request1Button_Click(null, null);
+                    break;
+                case "2":
+                    Request2Button_Click(null, null);
+                    break;
+                case "3":
+                    Request3Button_Click(null, null);
+                    break;
+                case "4":
+                    Request4Button_Click(null, null);
+                    break;
+                case "5":
+                    Request5Button_Click(null, null);
+                    break;
+                case "6":
+                    Request6Button_Click(null, null);
+                    break;
+                default:
+                    MessageBox.Show("Неизвестный запрос.");
+                    break;
+            }
+        }
+
         private void Request1Button_Click(object sender, RoutedEventArgs e)
         {
-            // Логика для Запроса 1
+            var failedInspectionOwners = _dbHelper.GetFailedInspectionOwners();
+            RequestsDataGrid.ItemsSource = failedInspectionOwners;
         }
 
         private void Request2Button_Click(object sender, RoutedEventArgs e)
         {
-            // Логика для Запроса 2
+            var luxuryCarOwners = _dbHelper.GetLuxuryCarOwners();
+            RequestsDataGrid.ItemsSource = luxuryCarOwners;
         }
 
         private void Request3Button_Click(object sender, RoutedEventArgs e)
         {
-            // Логика для Запроса 3
+            var serviceCenterInspections = _dbHelper.GetServiceCenterInspections();
+            RequestsDataGrid.ItemsSource = serviceCenterInspections;
         }
 
         private void Request4Button_Click(object sender, RoutedEventArgs e)
         {
-            // Логика для Запроса 4
+            var officerProtocols = _dbHelper.GetOfficerProtocols();
+            RequestsDataGrid.ItemsSource = officerProtocols;
         }
 
         private void Request5Button_Click(object sender, RoutedEventArgs e)
         {
-            // Логика для Запроса 5
+            var accidentParticipants = _dbHelper.GetAccidentParticipants();
+            RequestsDataGrid.ItemsSource = accidentParticipants;
         }
 
         private void Request6Button_Click(object sender, RoutedEventArgs e)
         {
-            // Логика для Запроса 6
+            try
+            {
+                var logs = _dbHelper.GetLogs(null, null, null, null);
+                RequestsDataGrid.ItemsSource = logs;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка загрузки логов: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
-        private void Request7Button_Click(object sender, RoutedEventArgs e)
-        {
-            // Логика для Запроса 7
-        }
 
-        private void Request8Button_Click(object sender, RoutedEventArgs e)
-        {
-            // Логика для Запроса 8
-        }
-
-        private void Request9Button_Click(object sender, RoutedEventArgs e)
-        {
-            // Логика для Запроса 9
-        }
         #endregion
     }
 }

@@ -529,49 +529,44 @@ Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" Bo
                 </Grid>
             </TabItem>
 
-            <!-- Добавляем новый раздел "Запросы" с 9 кнопками -->
+            <!-- Добавляем новый раздел "Запросы"-->
             <TabItem Header="Запросы">
                 <Grid Background="Transparent">
                     <!-- Кнопка Запрос1 -->
-                    <Button Content="Запрос1" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-400,0,0" 
-                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="Request1Button_Click"/>
+                    <Button x:Name="Request1Button" Content="Не прошедшие техосмотр" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-400,0,0" 
+                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" 
+                Click="RequestButton_Click" Tag="1"/>
 
                     <!-- Кнопка Запрос2 -->
-                    <Button Content="Запрос2" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-300,0,0" 
-                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="Request2Button_Click"/>
+                    <Button x:Name="Request2Button" Content="Дорогие иномарки" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-300,0,0" 
+                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" 
+                Click="RequestButton_Click" Tag="2"/>
 
                     <!-- Кнопка Запрос3 -->
-                    <Button Content="Запрос3" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-200,0,0" 
-                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="Request3Button_Click"/>
+                    <Button x:Name="Request3Button" Content="Техосмотры в СЦ" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-200,0,0" 
+                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" 
+                Click="RequestButton_Click" Tag="3"/>
 
                     <!-- Кнопка Запрос4 -->
-                    <Button Content="Запрос4" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-100,0,0" 
-                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="Request4Button_Click"/>
+                    <Button x:Name="Request4Button" Content="Протоколы сотрудника" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,-100,0,0" 
+                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" 
+                Click="RequestButton_Click" Tag="4"/>
 
                     <!-- Кнопка Запрос5 -->
-                    <Button Content="Запрос5" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,0,0,0" 
-                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="Request5Button_Click"/>
+                    <Button x:Name="Request5Button" Content="Участники ДТП" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,0,0,0" 
+                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" 
+                Click="RequestButton_Click" Tag="5"/>
 
                     <!-- Кнопка Запрос6 -->
-                    <Button Content="Запрос6" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,100,0,0" 
-                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="Request6Button_Click"/>
-
-                    <!-- Кнопка Запрос7 -->
-                    <Button Content="Запрос7" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,200,0,0" 
-                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="Request7Button_Click"/>
-
-                    <!-- Кнопка Запрос8 -->
-                    <Button Content="Запрос8" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,300,0,0" 
-                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="Request8Button_Click"/>
-
-                    <!-- Кнопка Запрос9 -->
-                    <Button Content="Запрос9" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,400,0,0" 
-                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" Click="Request9Button_Click"/>
+                    <Button Content="Получить логи" Width="200" Height="40" HorizontalAlignment="Left" Margin="10,100,0,0" 
+                Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" BorderThickness="0" 
+                Click="RequestButton_Click" Tag="6"/>
 
                     <!-- Таблица для отображения результатов запросов -->
                     <DataGrid x:Name="RequestsDataGrid" AutoGenerateColumns="True" Margin="220,10,10,10" IsReadOnly="True" ClipboardCopyMode="IncludeHeader"/>
                 </Grid>
             </TabItem>
+
         </TabControl>
     </Grid>
 </Window>
