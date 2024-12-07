@@ -12,15 +12,6 @@ namespace Kursovik
         public MainWindow()
         {
             InitializeComponent();
-            _dbHelper = new DatabaseHelper();
-            LoadOwners();
-            LoadCars();
-            LoadPoliceOfficers();
-            LoadServiceStaff();
-            LoadInspections();
-            LoadServiceCenters();
-            LoadViolations();
-            LoadEmployment();
         }
 
         #region Data Loading Methods
@@ -74,18 +65,53 @@ namespace Kursovik
         #endregion
 
         #region Login Method
+        #region Login Method
         private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
-            string login = LoginTextBox.Text;
-            string password = PasswordBox.Password;
+            string userLogin = LoginTextBox.Text;
+            string userPassword = PasswordBox.Password;
 
-            if (!string.IsNullOrEmpty(login) && !string.IsNullOrEmpty(password))
+            if (!string.IsNullOrEmpty(userLogin) && !string.IsNullOrEmpty(userPassword))
             {
-                LoginForm.Visibility = Visibility.Hidden;
-                MainTabControl.Visibility = Visibility.Visible;
+                try
+                {
+                    // Формирование строки подключения на основе введённых данных
+                    string connectionString = $"Host=172.20.7.54;Port=5432;Username={userLogin};Password={userPassword};Database=db2093_01";
 
-                // Отображаем таблицу владельцев при входе по умолчанию
-                ShowOwnersButton_Click(sender, e);
+                    // Проверяем подключение
+                    using (var connection = new Npgsql.NpgsqlConnection(connectionString))
+                    {
+                        connection.Open();
+
+                        //// Успешное подключение
+                        //MessageBox.Show("Подключение успешно!");
+
+                        LoginForm.Visibility = Visibility.Hidden;
+                        MainTabControl.Visibility = Visibility.Visible;
+
+                        // Сохраняем подключение в _dbHelper для дальнейшей работы
+                        _dbHelper = new DatabaseHelper(connectionString);
+
+                        //TODO здесь думать
+                        LoadOwners();
+                        LoadCars();
+                        LoadPoliceOfficers();
+                        LoadServiceStaff();
+                        LoadInspections();
+                        LoadServiceCenters();
+                        LoadViolations();
+                        LoadEmployment();
+
+                        // Отображаем таблицу владельцев при входе по умолчанию
+                        ShowOwnersButton_Click(sender, e);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Обработка ошибки подключения
+                    SystemSounds.Exclamation.Play();
+                    MessageBox.Show($"Ошибка подключения: {ex.Message}");
+                }
             }
             else
             {
@@ -93,6 +119,8 @@ namespace Kursovik
                 MessageBox.Show("Введите логин и пароль!");
             }
         }
+        #endregion
+
         #endregion
 
         #region Owners Tab
@@ -107,7 +135,6 @@ namespace Kursovik
             if (sender is Button deleteButton && deleteButton.CommandParameter is int ownerId)
             {
                 _dbHelper.DeleteOwner(ownerId); // Удаление записи из базы данных
-                MessageBox.Show("Владелец удален!");
                 LoadOwners(); // Обновление данных в DataGrid после удаления
             }
         }
@@ -134,7 +161,6 @@ namespace Kursovik
 
                 // Вызов метода для обновления данных в базе данных
                 _dbHelper.UpdateOwner(owner);
-                MessageBox.Show("Данные владельца обновлены!");
                 LoadOwners(); // Обновляем таблицу
             }
         }
@@ -148,25 +174,24 @@ namespace Kursovik
 
         private void SaveOwnerButton_Click(object sender, RoutedEventArgs e)
         {
-            var newOwner = new Owner
-            {
-                FullName = OwnerFIO.Text,
-                Address = OwnerAddress.Text,
-                PhoneNumber = OwnerPhone.Text,
-                BirthDate = DateTime.Parse(OwnerDOB.Text),
-                DriverLicenseNumber = OwnerDriverLicenseNumber.Text
-            };
-
-            if (string.IsNullOrEmpty(newOwner.FullName) || string.IsNullOrEmpty(newOwner.DriverLicenseNumber) ||
-                string.IsNullOrEmpty(newOwner.Address) || string.IsNullOrEmpty(newOwner.PhoneNumber))
+            if (string.IsNullOrEmpty(OwnerFIO.Text) || string.IsNullOrEmpty(OwnerAddress.Text) ||
+                string.IsNullOrEmpty(OwnerPhone.Text) || string.IsNullOrEmpty(OwnerDOB.Text) || string.IsNullOrEmpty(OwnerDriverLicenseNumber.Text))
             {
                 SystemSounds.Exclamation.Play();
                 MessageBox.Show("Ошибка: Все поля должны быть заполнены!");
                 return;
             }
 
+            var newOwner = new Owner
+            {
+                FullName = OwnerFIO.Text,
+                Address = OwnerAddress.Text,
+                PhoneNumber = OwnerPhone.Text,
+                BirthDate = OwnerDOB.Text,
+                DriverLicenseNumber = OwnerDriverLicenseNumber.Text
+            };
+
             _dbHelper.AddOwner(newOwner);
-            MessageBox.Show("Владелец добавлен!");
             ShowOwnersButton_Click(sender, e);
         }
         #endregion
@@ -187,27 +212,26 @@ namespace Kursovik
 
         private void SaveCarButton_Click(object sender, RoutedEventArgs e)
         {
-            var newCar = new Car
-            {
-                VIN = CarVIN.Text,
-                Brand = CarBrand.Text,
-                Model = CarModel.Text,
-                Year = int.Parse(CarYear.Text),
-                Color = CarColor.Text,
-                LicensePlate = CarNumber.Text,
-                OwnerID = int.Parse(OwnerID.Text)
-            };
-
-            if (string.IsNullOrEmpty(newCar.VIN) || string.IsNullOrEmpty(newCar.Brand) || string.IsNullOrEmpty(newCar.Model) ||
-                newCar.Year == 0 || string.IsNullOrEmpty(newCar.Color) || string.IsNullOrEmpty(newCar.LicensePlate) || newCar.OwnerID == 0)
+            if (string.IsNullOrEmpty(CarVIN.Text) || string.IsNullOrEmpty(CarBrand.Text) || string.IsNullOrEmpty(CarModel.Text) ||
+                string.IsNullOrEmpty(CarYear.Text) || string.IsNullOrEmpty(CarColor.Text) || string.IsNullOrEmpty(CarNumber.Text) || string.IsNullOrEmpty(OwnerID.Text))
             {
                 SystemSounds.Exclamation.Play();
                 MessageBox.Show("Ошибка: Все поля должны быть заполнены!");
                 return;
             }
 
+            var newCar = new Car
+            {
+                VIN = CarVIN.Text,
+                Brand = CarBrand.Text,
+                Model = CarModel.Text,
+                Year = int.TryParse(CarYear.Text, out int year) ? (int?)year : null,
+                Color = CarColor.Text,
+                LicensePlate = CarNumber.Text,
+                OwnerID = int.TryParse(OwnerID.Text, out int ownerId) ? (int?)ownerId : null
+            };
+
             _dbHelper.AddCar(newCar);
-            MessageBox.Show("Автомобиль добавлен!");
             ShowCarsButton_Click(sender, e);
         }
 
@@ -230,7 +254,6 @@ namespace Kursovik
                 }
 
                 _dbHelper.UpdateCar(car);
-                MessageBox.Show("Данные автомобиля обновлены!");
                 LoadCars();
             }
         }
@@ -240,7 +263,6 @@ namespace Kursovik
             if (sender is Button deleteButton && deleteButton.CommandParameter is string vin)
             {
                 _dbHelper.DeleteCar(vin);
-                MessageBox.Show("Автомобиль удален!");
                 LoadCars();
             }
         }
@@ -279,7 +301,6 @@ namespace Kursovik
             }
 
             _dbHelper.AddPoliceOfficer(newOfficer);
-            MessageBox.Show("Сотрудник ГИБДД добавлен!");
             ShowPoliceOfficersButton_Click(sender, e);
         }
 
@@ -302,7 +323,6 @@ namespace Kursovik
                 }
 
                 _dbHelper.UpdatePoliceOfficer(officer);
-                MessageBox.Show("Данные сотрудника ГАИ обновлены!");
                 LoadPoliceOfficers();
             }
         }
@@ -312,7 +332,6 @@ namespace Kursovik
             if (sender is Button deleteButton && deleteButton.CommandParameter is int officerId)
             {
                 _dbHelper.DeletePoliceOfficer(officerId);
-                MessageBox.Show("Сотрудник ГАИ удален!");
                 LoadPoliceOfficers();
             }
         }
@@ -349,7 +368,6 @@ namespace Kursovik
             }
 
             _dbHelper.AddServiceStaff(newStaff);
-            MessageBox.Show("Сотрудник сервисного центра добавлен!");
             ShowServiceStaffButton_Click(sender, e);
         }
 
@@ -372,7 +390,6 @@ namespace Kursovik
                 }
 
                 _dbHelper.UpdateServiceStaff(staff);
-                MessageBox.Show("Данные сотрудника сервисного центра обновлены!");
                 LoadServiceStaff();
             }
         }
@@ -382,7 +399,6 @@ namespace Kursovik
             if (sender is Button deleteButton && deleteButton.CommandParameter is int staffId)
             {
                 _dbHelper.DeleteServiceStaff(staffId);
-                MessageBox.Show("Сотрудник сервисного центра удален!");
                 LoadServiceStaff();
             }
         }
@@ -421,7 +437,6 @@ namespace Kursovik
             }
 
             _dbHelper.AddInspection(newInspection);
-            MessageBox.Show("Техосмотр добавлен!");
             ShowInspectionsButton_Click(sender, e);
         }
 
@@ -443,20 +458,21 @@ namespace Kursovik
                 }
 
                 _dbHelper.UpdateInspection(inspection);
-                MessageBox.Show("Данные техосмотра обновлены!");
                 LoadInspections();
             }
         }
 
         private void DeleteInspectionButton_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button deleteButton && deleteButton.CommandParameter is string vin)
+            if (sender is Button deleteButton
+                && deleteButton.Tag is string inspectionDate
+                && deleteButton.CommandParameter is string vin)
             {
-                _dbHelper.DeleteInspection(vin);
-                MessageBox.Show("Техосмотр удален!");
+                _dbHelper.DeleteInspection(inspectionDate, vin);
                 LoadInspections();
             }
         }
+
         #endregion
 
         #region Violations Tab
@@ -475,25 +491,24 @@ namespace Kursovik
 
         private void SaveViolationButton_Click(object sender, RoutedEventArgs e)
         {
-            var newViolation = new Violation
-            {
-                IssueDate = ViolationDate.Text,
-                ViolationType = ViolationType.Text,
-                FineAmount = int.Parse(ViolationFine.Text),
-                VIN = ViolationCarVIN.Text,
-                OfficerId = int.TryParse(ViolationOfficerId.Text, out int officerId) ? (int?)officerId : null
-            };
-
-            if (string.IsNullOrEmpty(newViolation.IssueDate) || string.IsNullOrEmpty(newViolation.ViolationType) ||
-                newViolation.FineAmount == 0 || string.IsNullOrEmpty(newViolation.VIN))
+            if (string.IsNullOrEmpty(ViolationDate.Text) || string.IsNullOrEmpty(ViolationType.Text) ||
+                string.IsNullOrEmpty(ViolationFine.Text) || string.IsNullOrEmpty(ViolationCarVIN.Text) || string.IsNullOrEmpty(ViolationOfficerId.Text))
             {
                 SystemSounds.Exclamation.Play();
                 MessageBox.Show("Ошибка: Все обязательные поля должны быть заполнены!");
                 return;
             }
 
+            var newViolation = new Violation
+            {
+                IssueDate = ViolationDate.Text,
+                ViolationType = ViolationType.Text,
+                FineAmount = int.TryParse(ViolationFine.Text, out int fine) ? (int?)fine : null,
+                VIN = ViolationCarVIN.Text,
+                OfficerId = int.TryParse(ViolationOfficerId.Text, out int officerId) ? (int?)officerId : null
+            };
+
             _dbHelper.AddViolation(newViolation);
-            MessageBox.Show("Протокол добавлен!");
             ShowViolationsButton_Click(sender, e);
         }
 
@@ -516,7 +531,6 @@ namespace Kursovik
                 }
 
                 _dbHelper.UpdateViolation(violation);
-                MessageBox.Show("Данные протокола обновлены!");
                 LoadViolations();
             }
         }
@@ -526,7 +540,6 @@ namespace Kursovik
             if (sender is Button deleteButton && deleteButton.CommandParameter is int protocolNumber)
             {
                 _dbHelper.DeleteViolation(protocolNumber);
-                MessageBox.Show("Протокол удален!");
                 LoadViolations();
             }
         }
@@ -565,7 +578,6 @@ namespace Kursovik
             }
 
             _dbHelper.AddServiceCenter(newServiceCenter);
-            MessageBox.Show("Сервисный центр добавлен!");
             ShowServiceCentersButton_Click(sender, e);
         }
 
@@ -587,7 +599,6 @@ namespace Kursovik
                 }
 
                 _dbHelper.UpdateServiceCenter(center);
-                MessageBox.Show("Данные сервисного центра обновлены!");
                 LoadServiceCenters();
             }
         }
@@ -597,7 +608,6 @@ namespace Kursovik
             if (sender is Button deleteButton && deleteButton.CommandParameter is string license)
             {
                 _dbHelper.DeleteServiceCenter(license);
-                MessageBox.Show("Сервисный центр удален!");
                 LoadServiceCenters();
             }
         }
@@ -628,10 +638,10 @@ namespace Kursovik
             var newEmployment = new Employment
             {
                 ServiceCenterLicense = EmploymentServiceCenterLicense.Text,
-                ServiceEmployeeId = serviceEmployeeId ?? 0
+                ServiceEmployeeId = serviceEmployeeId ?? -1
             };
 
-            if (string.IsNullOrEmpty(newEmployment.ServiceCenterLicense) || newEmployment.ServiceEmployeeId == 0)
+            if (string.IsNullOrEmpty(newEmployment.ServiceCenterLicense) || newEmployment.ServiceEmployeeId == -1)
             {
                 SystemSounds.Exclamation.Play();
                 MessageBox.Show("Ошибка: Все поля должны быть заполнены!");
@@ -639,7 +649,6 @@ namespace Kursovik
             }
 
             _dbHelper.AddEmployment(newEmployment);
-            MessageBox.Show("Связь добавлена!");
             ShowEmploymentButton_Click(sender, e);
         }
 
@@ -661,20 +670,27 @@ namespace Kursovik
                 }
 
                 _dbHelper.UpdateEmployment(employment);
-                MessageBox.Show("Данные связи обновлены!");
                 LoadEmployment();
             }
         }
 
         private void DeleteEmploymentButton_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button deleteButton && deleteButton.CommandParameter is string license)
+            if (sender is Button deleteButton)
             {
-                _dbHelper.DeleteEmployment(license);
-                MessageBox.Show("Связь удалена!");
-                LoadEmployment();
+                string license = deleteButton.CommandParameter as string;
+                if (int.TryParse(deleteButton.Tag?.ToString(), out int employeeId))
+                {
+                    _dbHelper.DeleteEmployment(license, employeeId); // Передача двух параметров
+                    LoadEmployment();
+                }
+                else
+                {
+                    MessageBox.Show("Ошибка: не удалось определить ID сотрудника.");
+                }
             }
         }
+
         #endregion
 
         #region Request Methods

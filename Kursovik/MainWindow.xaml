@@ -90,6 +90,7 @@
                     <DataGrid x:Name="OwnersDataGrid" AutoGenerateColumns="False" Margin="220,10,10,10" CanUserAddRows="False" IsReadOnly="False">
                         <DataGrid.Columns>
                             <!-- Определение столбцов для отображения данных владельцев -->
+                            <DataGridTextColumn Header="OwnerId" Binding="{Binding OwnerId}" IsReadOnly="True"/>
                             <DataGridTextColumn Header="ФИО" Binding="{Binding FullName}" />
                             <DataGridTextColumn Header="Номер ВУ" Binding="{Binding DriverLicenseNumber}" />
                             <DataGridTextColumn Header="Адрес проживания" Binding="{Binding Address}" />
@@ -337,10 +338,12 @@ Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" Bo
                             <DataGridTemplateColumn Header="Удалить">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Button Content="Удалить" Width="80" Click="DeleteInspectionButton_Click" CommandParameter="{Binding VIN}" />
+                                        <Button Content="Удалить" Width="80" Click="DeleteInspectionButton_Click" 
+                    Tag="{Binding InspectionDate}" CommandParameter="{Binding VIN}" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
+
                         </DataGrid.Columns>
                     </DataGrid>
 
@@ -505,7 +508,9 @@ Background="DarkSlateBlue" Foreground="White" FontSize="14" FontWeight="Bold" Bo
                             <DataGridTemplateColumn Header="Удалить">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Button Content="Удалить" Width="80" Click="DeleteEmploymentButton_Click" CommandParameter="{Binding ServiceCenterLicense}" />
+                                        <Button Content="Удалить" Width="80" Click="DeleteEmploymentButton_Click" 
+        CommandParameter="{Binding ServiceCenterLicense}" 
+        Tag="{Binding ServiceEmployeeId}" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>

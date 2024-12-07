@@ -11,7 +11,7 @@ namespace Kursovik
         public int ProtocolNumber { get; set; }
         public string IssueDate { get; set; }
         public string ViolationType { get; set; }
-        public int FineAmount { get; set; }
+        public int? FineAmount { get; set; }
         public string VIN { get; set; }
         public int? OfficerId { get; set; }
     }

@@ -1,7 +1,6 @@
 ﻿using Npgsql;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Windows;
 
 namespace Kursovik
@@ -10,9 +9,9 @@ namespace Kursovik
     {
         private readonly string _connectionString;
 
-        public DatabaseHelper()
+        public DatabaseHelper(string conn)
         {
-            _connectionString = ConfigurationManager.ConnectionStrings["PostgreSqlConnection"].ConnectionString;
+            _connectionString = conn;
         }
 
         #region Database Connection
@@ -20,13 +19,33 @@ namespace Kursovik
         {
             return new NpgsqlConnection(_connectionString);
         }
+
+        private void ExecuteProcedure(string procedure, Action<NpgsqlCommand> parameterSetup)
+        {
+            try
+            {
+                using (var connection = GetConnection())
+                {
+                    connection.Open();
+                    using (var command = new NpgsqlCommand(procedure, connection))
+                    {
+                        parameterSetup(command);
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при выполнении запроса: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
         #endregion
 
         #region Owners Methods
         public List<Owner> GetOwners()
         {
             var owners = new List<Owner>();
-            string query = "SELECT owner_id, full_name, address, phone_number, birth_date, driver_license_number FROM autoinspection.owners";
+            string query = "SELECT * FROM autoinspection.get_owners()";
 
             using (var connection = GetConnection())
             {
@@ -42,7 +61,7 @@ namespace Kursovik
                             FullName = reader.GetString(1),
                             Address = reader.GetString(2),
                             PhoneNumber = reader.GetString(3),
-                            BirthDate = reader.GetDateTime(4),
+                            BirthDate = reader.GetDateTime(4).ToString("yyyy-MM-dd"),
                             DriverLicenseNumber = reader.GetString(5)
                         });
                     }
@@ -54,93 +73,46 @@ namespace Kursovik
 
         public void AddOwner(Owner owner)
         {
-            string query = "INSERT INTO autoinspection.owners (full_name, address, phone_number, birth_date, driver_license_number) VALUES (@FullName, @Address, @PhoneNumber, @BirthDate, @DriverLicenseNumber)";
-
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.insert_owner(@FullName, @Address, @PhoneNumber, @BirthDate, @DriverLicenseNumber)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@FullName", owner.FullName);
-                    command.Parameters.AddWithValue("@Address", owner.Address);
-                    command.Parameters.AddWithValue("@PhoneNumber", owner.PhoneNumber);
-                    command.Parameters.AddWithValue("@BirthDate", owner.BirthDate);
-                    command.Parameters.AddWithValue("@DriverLicenseNumber", owner.DriverLicenseNumber);
-
-                    command.ExecuteNonQuery();
-                }
-            }
-        }
-
-        public void DeleteOwner(int ownerId)
-        {
-            string query = "DELETE FROM autoinspection.owners WHERE owner_id = @OwnerId";
-
-            try
-            {
-                using (var connection = GetConnection())
-                {
-                    connection.Open();
-                    using (var command = new NpgsqlCommand(query, connection))
-                    {
-                        command.Parameters.AddWithValue("@OwnerId", ownerId);
-                        int affectedRows = command.ExecuteNonQuery();
-
-                        if (affectedRows == 0)
-                        {
-                            MessageBox.Show("Владелец с указанным ID не найден.");
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Ошибка при удалении владельца: " + ex.Message);
-            }
+                command.Parameters.AddWithValue("@FullName", owner.FullName);
+                command.Parameters.AddWithValue("@Address", owner.Address);
+                command.Parameters.AddWithValue("@PhoneNumber", owner.PhoneNumber);
+                command.Parameters.AddWithValue("@BirthDate", NpgsqlTypes.NpgsqlDbType.Date, DateTime.Parse(owner.BirthDate).Date);
+                command.Parameters.AddWithValue("@DriverLicenseNumber", owner.DriverLicenseNumber);
+            });
         }
 
         public void UpdateOwner(Owner owner)
         {
-            string query = "UPDATE autoinspection.owners SET full_name = @FullName, address = @Address, " +
-                           "phone_number = @PhoneNumber, birth_date = @BirthDate, driver_license_number = @DriverLicenseNumber " +
-                           "WHERE owner_id = @OwnerId";
-
-            try
+            string procedure = "CALL autoinspection.update_owner(@OwnerId, @FullName, @Address, @PhoneNumber, @BirthDate, @DriverLicenseNumber)";
+            ExecuteProcedure(procedure, command =>
             {
-                using (var connection = GetConnection())
-                {
-                    connection.Open();
-                    using (var command = new NpgsqlCommand(query, connection))
-                    {
-                        command.Parameters.AddWithValue("@FullName", owner.FullName);
-                        command.Parameters.AddWithValue("@Address", owner.Address);
-                        command.Parameters.AddWithValue("@PhoneNumber", owner.PhoneNumber);
-                        command.Parameters.AddWithValue("@BirthDate", owner.BirthDate);
-                        command.Parameters.AddWithValue("@DriverLicenseNumber", owner.DriverLicenseNumber);
-                        command.Parameters.AddWithValue("@OwnerId", owner.OwnerId);
-
-                        int affectedRows = command.ExecuteNonQuery();
-
-                        if (affectedRows == 0)
-                        {
-                            MessageBox.Show("Не удалось обновить данные владельца. Проверьте корректность ID.");
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Ошибка при обновлении владельца: " + ex.Message);
-            }
+                command.Parameters.AddWithValue("@OwnerId", owner.OwnerId);
+                command.Parameters.AddWithValue("@FullName", owner.FullName);
+                command.Parameters.AddWithValue("@Address", owner.Address);
+                command.Parameters.AddWithValue("@PhoneNumber", owner.PhoneNumber);
+                command.Parameters.AddWithValue("@BirthDate", NpgsqlTypes.NpgsqlDbType.Date, DateTime.Parse(owner.BirthDate).Date);
+                command.Parameters.AddWithValue("@DriverLicenseNumber", owner.DriverLicenseNumber);
+            });
         }
 
+        public void DeleteOwner(int ownerId)
+        {
+            string procedure = "CALL autoinspection.delete_owner(@OwnerId)";
+            ExecuteProcedure(procedure, command =>
+            {
+                command.Parameters.AddWithValue("@OwnerId", ownerId);
+            });
+        }
         #endregion
 
         #region Cars Methods
         public List<Car> GetCars()
         {
             var cars = new List<Car>();
-            string query = "SELECT vin, brand, model, year, color, license_plate, owner_id FROM autoinspection.cars";
+            string query = "SELECT * FROM autoinspection.get_cars()";
 
             using (var connection = GetConnection())
             {
@@ -169,67 +141,49 @@ namespace Kursovik
 
         public void AddCar(Car car)
         {
-            string query = "INSERT INTO autoinspection.cars (vin, brand, model, year, color, license_plate, owner_id) VALUES (@VIN, @Brand, @Model, @Year, @Color, @LicensePlate, @OwnerID)";
-
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.insert_car(@VIN, @Brand, @Model, @Year, @Color, @LicensePlate, @OwnerID)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@VIN", car.VIN);
-                    command.Parameters.AddWithValue("@Brand", car.Brand);
-                    command.Parameters.AddWithValue("@Model", car.Model);
-                    command.Parameters.AddWithValue("@Year", car.Year);
-                    command.Parameters.AddWithValue("@Color", car.Color);
-                    command.Parameters.AddWithValue("@LicensePlate", car.LicensePlate);
-                    command.Parameters.AddWithValue("@OwnerID", car.OwnerID);
-
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@VIN", car.VIN);
+                command.Parameters.AddWithValue("@Brand", car.Brand);
+                command.Parameters.AddWithValue("@Model", car.Model);
+                command.Parameters.AddWithValue("@Year", car.Year);
+                command.Parameters.AddWithValue("@Color", car.Color);
+                command.Parameters.AddWithValue("@LicensePlate", car.LicensePlate);
+                command.Parameters.AddWithValue("@OwnerID", car.OwnerID);
+            });
         }
 
         public void UpdateCar(Car car)
         {
-            string query = "UPDATE autoinspection.cars SET brand = @Brand, model = @Model, year = @Year, color = @Color, license_plate = @LicensePlate, owner_id = @OwnerID WHERE vin = @VIN";
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.update_car(@VIN, @Brand, @Model, @Year, @Color, @LicensePlate, @OwnerID)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@Brand", car.Brand);
-                    command.Parameters.AddWithValue("@Model", car.Model);
-                    command.Parameters.AddWithValue("@Year", car.Year);
-                    command.Parameters.AddWithValue("@Color", car.Color);
-                    command.Parameters.AddWithValue("@LicensePlate", car.LicensePlate);
-                    command.Parameters.AddWithValue("@OwnerID", car.OwnerID);
-                    command.Parameters.AddWithValue("@VIN", car.VIN);
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@VIN", car.VIN);
+                command.Parameters.AddWithValue("@Brand", car.Brand);
+                command.Parameters.AddWithValue("@Model", car.Model);
+                command.Parameters.AddWithValue("@Year", car.Year);
+                command.Parameters.AddWithValue("@Color", car.Color);
+                command.Parameters.AddWithValue("@LicensePlate", car.LicensePlate);
+                command.Parameters.AddWithValue("@OwnerID", car.OwnerID);
+            });
         }
 
         public void DeleteCar(string vin)
         {
-            string query = "DELETE FROM autoinspection.cars WHERE vin = @VIN";
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.delete_car(@VIN)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@VIN", vin);
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@VIN", vin);
+            });
         }
-
         #endregion
 
         #region PoliceOfficers Methods
         public List<PoliceOfficer> GetPoliceOfficers()
         {
             var officers = new List<PoliceOfficer>();
-            string query = "SELECT officer_id, full_name, position, department, contact_details FROM autoinspection.trafficofficers";
+            string query = "SELECT * FROM autoinspection.get_traffic_officers()";
 
             using (var connection = GetConnection())
             {
@@ -256,62 +210,44 @@ namespace Kursovik
 
         public void AddPoliceOfficer(PoliceOfficer officer)
         {
-            string query = "INSERT INTO autoinspection.trafficofficers (full_name, position, department, contact_details) VALUES (@FullName, @Position, @Department, @ContactDetails)";
-
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.insert_trafficofficer(@FullName, @Position, @Department, @ContactDetails)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@FullName", officer.FullName);
-                    command.Parameters.AddWithValue("@Position", officer.Position);
-                    command.Parameters.AddWithValue("@Department", officer.Department);
-                    command.Parameters.AddWithValue("@ContactDetails", officer.ContactDetails);
-
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@FullName", officer.FullName);
+                command.Parameters.AddWithValue("@Position", officer.Position);
+                command.Parameters.AddWithValue("@Department", officer.Department);
+                command.Parameters.AddWithValue("@ContactDetails", officer.ContactDetails);
+            });
         }
 
         public void UpdatePoliceOfficer(PoliceOfficer officer)
         {
-            string query = "UPDATE autoinspection.trafficofficers SET full_name = @FullName, position = @Position, department = @Department, contact_details = @ContactDetails WHERE officer_id = @OfficerId";
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.update_trafficofficer(@OfficerId, @FullName, @Position, @Department, @ContactDetails)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@FullName", officer.FullName);
-                    command.Parameters.AddWithValue("@Position", officer.Position);
-                    command.Parameters.AddWithValue("@Department", officer.Department);
-                    command.Parameters.AddWithValue("@ContactDetails", officer.ContactDetails);
-                    command.Parameters.AddWithValue("@OfficerId", officer.OfficerId);
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@OfficerId", officer.OfficerId);
+                command.Parameters.AddWithValue("@FullName", officer.FullName);
+                command.Parameters.AddWithValue("@Position", officer.Position);
+                command.Parameters.AddWithValue("@Department", officer.Department);
+                command.Parameters.AddWithValue("@ContactDetails", officer.ContactDetails);
+            });
         }
 
         public void DeletePoliceOfficer(int officerId)
         {
-            string query = "DELETE FROM autoinspection.trafficofficers WHERE officer_id = @OfficerId";
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.delete_trafficofficer(@OfficerId)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@OfficerId", officerId);
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@OfficerId", officerId);
+            });
         }
-
         #endregion
 
         #region ServiceStaff Methods
         public List<ServiceStaff> GetServiceStaff()
         {
             var staffList = new List<ServiceStaff>();
-            string query = "SELECT employee_id, full_name, position, contact_details FROM autoinspection.serviceemployees";
+            string query = "SELECT * FROM autoinspection.get_service_employees()";
 
             using (var connection = GetConnection())
             {
@@ -337,60 +273,42 @@ namespace Kursovik
 
         public void AddServiceStaff(ServiceStaff staff)
         {
-            string query = "INSERT INTO autoinspection.serviceemployees (full_name, position, contact_details) VALUES (@FullName, @Position, @ContactDetails)";
-
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.insert_serviceemployee(@FullName, @Position, @ContactDetails)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@FullName", staff.FullName);
-                    command.Parameters.AddWithValue("@Position", staff.Position);
-                    command.Parameters.AddWithValue("@ContactDetails", staff.ContactDetails);
-
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@FullName", staff.FullName);
+                command.Parameters.AddWithValue("@Position", staff.Position);
+                command.Parameters.AddWithValue("@ContactDetails", staff.ContactDetails);
+            });
         }
 
         public void UpdateServiceStaff(ServiceStaff staff)
         {
-            string query = "UPDATE autoinspection.serviceemployees SET full_name = @FullName, position = @Position, contact_details = @ContactDetails WHERE employee_id = @StaffId";
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.update_serviceemployee(@StaffId, @FullName, @Position, @ContactDetails)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@FullName", staff.FullName);
-                    command.Parameters.AddWithValue("@Position", staff.Position);
-                    command.Parameters.AddWithValue("@ContactDetails", staff.ContactDetails);
-                    command.Parameters.AddWithValue("@StaffId", staff.StaffId);
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@StaffId", staff.StaffId);
+                command.Parameters.AddWithValue("@FullName", staff.FullName);
+                command.Parameters.AddWithValue("@Position", staff.Position);
+                command.Parameters.AddWithValue("@ContactDetails", staff.ContactDetails);
+            });
         }
 
         public void DeleteServiceStaff(int staffId)
         {
-            string query = "DELETE FROM autoinspection.serviceemployees WHERE employee_id = @StaffId";
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.delete_serviceemployee(@StaffId)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@StaffId", staffId);
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@StaffId", staffId);
+            });
         }
-
         #endregion
 
         #region Inspections Methods
         public List<Inspection> GetInspections()
         {
             var inspections = new List<Inspection>();
-            string query = "SELECT inspection_date, result, notes, vin, service_employee_id FROM autoinspection.inspections";
+            string query = "SELECT * FROM autoinspection.get_inspections()";
 
             using (var connection = GetConnection())
             {
@@ -417,54 +335,38 @@ namespace Kursovik
 
         public void AddInspection(Inspection inspection)
         {
-            string query = "INSERT INTO autoinspection.inspections (inspection_date, result, notes, vin, service_employee_id) VALUES (@InspectionDate, @Result, @Notes, @VIN, @ServiceEmployeeId)";
-
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.insert_inspection(@InspectionDate, @Result, @Notes, @VIN, @ServiceEmployeeId)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@InspectionDate", DateTime.Parse(inspection.InspectionDate));
-                    command.Parameters.AddWithValue("@Result", inspection.Result);
-                    command.Parameters.AddWithValue("@Notes", inspection.Notes);
-                    command.Parameters.AddWithValue("@VIN", inspection.VIN);
-                    command.Parameters.AddWithValue("@ServiceEmployeeId", inspection.ServiceEmployeeId.HasValue ? (object)inspection.ServiceEmployeeId.Value : DBNull.Value);
-
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@InspectionDate", NpgsqlTypes.NpgsqlDbType.Date, DateTime.Parse(inspection.InspectionDate).Date);
+                command.Parameters.AddWithValue("@Result", inspection.Result);
+                command.Parameters.AddWithValue("@Notes", inspection.Notes);
+                command.Parameters.AddWithValue("@VIN", inspection.VIN);
+                command.Parameters.AddWithValue("@ServiceEmployeeId", inspection.ServiceEmployeeId.HasValue ? (object)inspection.ServiceEmployeeId.Value : DBNull.Value);
+            });
         }
 
         public void UpdateInspection(Inspection inspection)
         {
-            string query = "UPDATE autoinspection.inspections SET inspection_date = @InspectionDate, result = @Result, notes = @Notes, service_employee_id = @ServiceEmployeeId WHERE vin = @VIN";
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.update_inspection(@InspectionDate, @Result, @Notes, @VIN, @ServiceEmployeeId)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@InspectionDate", DateTime.Parse(inspection.InspectionDate));
-                    command.Parameters.AddWithValue("@Result", inspection.Result);
-                    command.Parameters.AddWithValue("@Notes", inspection.Notes);
-                    command.Parameters.AddWithValue("@ServiceEmployeeId", inspection.ServiceEmployeeId.HasValue ? (object)inspection.ServiceEmployeeId.Value : DBNull.Value);
-                    command.Parameters.AddWithValue("@VIN", inspection.VIN);
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@InspectionDate", NpgsqlTypes.NpgsqlDbType.Date, DateTime.Parse(inspection.InspectionDate).Date);
+                command.Parameters.AddWithValue("@Result", inspection.Result);
+                command.Parameters.AddWithValue("@Notes", inspection.Notes);
+                command.Parameters.AddWithValue("@VIN", inspection.VIN);
+                command.Parameters.AddWithValue("@ServiceEmployeeId", inspection.ServiceEmployeeId.HasValue ? (object)inspection.ServiceEmployeeId.Value : DBNull.Value);
+            });
         }
 
-        public void DeleteInspection(string vin)
+        public void DeleteInspection(string inspectionDate, string vin)
         {
-            string query = "DELETE FROM autoinspection.inspections WHERE vin = @VIN";
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.delete_inspection(@InspectionDate, @VIN)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@VIN", vin);
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@InspectionDate", NpgsqlTypes.NpgsqlDbType.Date, DateTime.Parse(inspectionDate).Date);
+                command.Parameters.AddWithValue("@VIN", vin);
+            });
         }
 
         #endregion
@@ -473,7 +375,7 @@ namespace Kursovik
         public List<Violation> GetViolations()
         {
             var violations = new List<Violation>();
-            string query = "SELECT protocol_number, issue_date, violation_type, fine_amount, vin, officer_id FROM autoinspection.protocols";
+            string query = "SELECT * FROM autoinspection.get_protocols()";
 
             using (var connection = GetConnection())
             {
@@ -501,63 +403,46 @@ namespace Kursovik
 
         public void AddViolation(Violation violation)
         {
-            string query = "INSERT INTO autoinspection.protocols (issue_date, violation_type, fine_amount, vin, officer_id) VALUES (@IssueDate, @ViolationType, @FineAmount, @VIN, @OfficerId)";
-
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.insert_protocol(@IssueDate, @ViolationType, @FineAmount, @VIN, @OfficerId)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@IssueDate", DateTime.Parse(violation.IssueDate));
-                    command.Parameters.AddWithValue("@ViolationType", violation.ViolationType);
-                    command.Parameters.AddWithValue("@FineAmount", violation.FineAmount);
-                    command.Parameters.AddWithValue("@VIN", violation.VIN);
-                    command.Parameters.AddWithValue("@OfficerId", violation.OfficerId.HasValue ? (object)violation.OfficerId.Value : DBNull.Value);
-
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@IssueDate", NpgsqlTypes.NpgsqlDbType.Date, DateTime.Parse(violation.IssueDate).Date);
+                command.Parameters.AddWithValue("@ViolationType", violation.ViolationType);
+                command.Parameters.AddWithValue("@FineAmount", violation.FineAmount);
+                command.Parameters.AddWithValue("@VIN", violation.VIN);
+                command.Parameters.AddWithValue("@OfficerId", violation.OfficerId.HasValue ? (object)violation.OfficerId.Value : DBNull.Value);
+            });
         }
 
         public void UpdateViolation(Violation violation)
         {
-            string query = "UPDATE autoinspection.protocols SET issue_date = @IssueDate, violation_type = @ViolationType, fine_amount = @FineAmount, officer_id = @OfficerId WHERE protocol_number = @ProtocolNumber";
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.update_protocol(@ProtocolNumber, @IssueDate, @ViolationType, @FineAmount, @VIN, @OfficerId)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@IssueDate", DateTime.Parse(violation.IssueDate));
-                    command.Parameters.AddWithValue("@ViolationType", violation.ViolationType);
-                    command.Parameters.AddWithValue("@FineAmount", violation.FineAmount);
-                    command.Parameters.AddWithValue("@OfficerId", violation.OfficerId.HasValue ? (object)violation.OfficerId.Value : DBNull.Value);
-                    command.Parameters.AddWithValue("@ProtocolNumber", violation.ProtocolNumber);
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@ProtocolNumber", violation.ProtocolNumber);
+                command.Parameters.AddWithValue("@IssueDate", NpgsqlTypes.NpgsqlDbType.Date, DateTime.Parse(violation.IssueDate).Date);
+                command.Parameters.AddWithValue("@ViolationType", violation.ViolationType);
+                command.Parameters.AddWithValue("@FineAmount", violation.FineAmount);
+                command.Parameters.AddWithValue("@VIN", violation.VIN);
+                command.Parameters.AddWithValue("@OfficerId", violation.OfficerId.HasValue ? (object)violation.OfficerId.Value : DBNull.Value);
+            });
         }
 
         public void DeleteViolation(int protocolNumber)
         {
-            string query = "DELETE FROM autoinspection.protocols WHERE protocol_number = @ProtocolNumber";
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.delete_protocol(@ProtocolNumber)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@ProtocolNumber", protocolNumber);
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@ProtocolNumber", protocolNumber);
+            });
         }
-
         #endregion
 
         #region ServiceCenters Methods
         public List<ServiceCenter> GetServiceCenters()
         {
             var serviceCenters = new List<ServiceCenter>();
-            string query = "SELECT license, name, address, contact_person FROM autoinspection.servicecenters";
+            string query = "SELECT * FROM autoinspection.get_service_centers()";
 
             using (var connection = GetConnection())
             {
@@ -583,61 +468,43 @@ namespace Kursovik
 
         public void AddServiceCenter(ServiceCenter serviceCenter)
         {
-            string query = "INSERT INTO autoinspection.servicecenters (license, name, address, contact_person) VALUES (@License, @Name, @Address, @ContactPerson)";
-
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.insert_servicecenter(@License, @Name, @Address, @ContactPerson)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@License", serviceCenter.License);
-                    command.Parameters.AddWithValue("@Name", serviceCenter.Name);
-                    command.Parameters.AddWithValue("@Address", serviceCenter.Address);
-                    command.Parameters.AddWithValue("@ContactPerson", serviceCenter.ContactPerson);
-
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@License", serviceCenter.License);
+                command.Parameters.AddWithValue("@Name", serviceCenter.Name);
+                command.Parameters.AddWithValue("@Address", serviceCenter.Address);
+                command.Parameters.AddWithValue("@ContactPerson", serviceCenter.ContactPerson);
+            });
         }
 
-        public void UpdateServiceCenter(ServiceCenter center)
+        public void UpdateServiceCenter(ServiceCenter serviceCenter)
         {
-            string query = "UPDATE autoinspection.servicecenters SET name = @Name, address = @Address, contact_person = @ContactPerson WHERE license = @License";
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.update_servicecenter(@License, @Name, @Address, @ContactPerson)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@Name", center.Name);
-                    command.Parameters.AddWithValue("@Address", center.Address);
-                    command.Parameters.AddWithValue("@ContactPerson", center.ContactPerson);
-                    command.Parameters.AddWithValue("@License", center.License);
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@License", serviceCenter.License);
+                command.Parameters.AddWithValue("@Name", serviceCenter.Name);
+                command.Parameters.AddWithValue("@Address", serviceCenter.Address);
+                command.Parameters.AddWithValue("@ContactPerson", serviceCenter.ContactPerson);
+            });
         }
 
         public void DeleteServiceCenter(string license)
         {
-            string query = "DELETE FROM autoinspection.servicecenters WHERE license = @License";
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.delete_servicecenter(@License)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@License", license);
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@License", license);
+            });
         }
-
         #endregion
 
         #region Employment Methods
         public List<Employment> GetEmployment()
         {
             var employmentList = new List<Employment>();
-            string query = "SELECT service_center_license, service_employee_id FROM autoinspection.employment";
+            string query = "SELECT * FROM autoinspection.get_employment()";
 
             using (var connection = GetConnection())
             {
@@ -661,50 +528,35 @@ namespace Kursovik
 
         public void AddEmployment(Employment employment)
         {
-            string query = "INSERT INTO autoinspection.employment (service_center_license, service_employee_id) VALUES (@ServiceCenterLicense, @ServiceEmployeeId)";
-
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.insert_employment(@ServiceCenterLicense, @ServiceEmployeeId)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@ServiceCenterLicense", employment.ServiceCenterLicense);
-                    command.Parameters.AddWithValue("@ServiceEmployeeId", employment.ServiceEmployeeId);
-
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@ServiceCenterLicense", employment.ServiceCenterLicense);
+                command.Parameters.AddWithValue("@ServiceEmployeeId", employment.ServiceEmployeeId);
+            });
         }
 
         public void UpdateEmployment(Employment employment)
         {
-            string query = "UPDATE autoinspection.employment SET service_employee_id = @ServiceEmployeeId WHERE service_center_license = @ServiceCenterLicense";
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.update_employment(@TargetServiceCenterLicense, @TargetServiceEmployeeId, @NewServiceCenterLicense, @NewServiceEmployeeId)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@ServiceEmployeeId", employment.ServiceEmployeeId);
-                    command.Parameters.AddWithValue("@ServiceCenterLicense", employment.ServiceCenterLicense);
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@TargetServiceCenterLicense", employment.ServiceCenterLicense);
+                command.Parameters.AddWithValue("@TargetServiceEmployeeId", employment.ServiceEmployeeId);
+                command.Parameters.AddWithValue("@NewServiceCenterLicense", employment.ServiceCenterLicense);
+                command.Parameters.AddWithValue("@NewServiceEmployeeId", employment.ServiceEmployeeId);
+            });
         }
 
-        public void DeleteEmployment(string serviceCenterLicense)
+        public void DeleteEmployment(string serviceCenterLicense, int serviceEmployeeId)
         {
-            string query = "DELETE FROM autoinspection.employment WHERE service_center_license = @ServiceCenterLicense";
-            using (var connection = GetConnection())
+            string procedure = "CALL autoinspection.delete_employment(@ServiceCenterLicense, @ServiceEmployeeId)";
+            ExecuteProcedure(procedure, command =>
             {
-                connection.Open();
-                using (var command = new NpgsqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@ServiceCenterLicense", serviceCenterLicense);
-                    command.ExecuteNonQuery();
-                }
-            }
+                command.Parameters.AddWithValue("@ServiceCenterLicense", serviceCenterLicense);
+                command.Parameters.AddWithValue("@ServiceEmployeeId", serviceEmployeeId);
+            });
         }
-
         #endregion
     }
 }
