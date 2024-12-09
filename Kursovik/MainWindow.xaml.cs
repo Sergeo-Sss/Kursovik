@@ -67,7 +67,6 @@ namespace Kursovik
         #endregion
 
         #region Login Method
-        #region Login Method
         private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
             string userLogin = LoginTextBox.Text;
@@ -206,20 +205,18 @@ namespace Kursovik
         {
             try
             {
-                SetButtonByName("Не прошедшие техосмотр", _dbHelper.HasSelectPermission("owners", "SELECT"));
-                SetButtonByName("Дорогие иномарки", _dbHelper.HasSelectPermission("cars"));
-                SetButtonByName("Техосмотры в СЦ", _dbHelper.HasSelectPermission("trafficofficers", "SELECT"));
-                SetButtonByName("Протоколы сотрудника", _dbHelper.HasSelectPermission("cars"));
-                SetButtonByName("Участники ДТП", _dbHelper.HasSelectPermission("cars"));
-                SetButtonByName("Получить логи", _dbHelper.HasSelectPermission("logs"));
+                SetButtonByName("Не прошедшие техосмотр", _dbHelper.HasSelectPermission("failed_inspection_owners", "SELECT"));
+                SetButtonByName("Дорогие иномарки", _dbHelper.HasSelectPermission("luxury_car_owners", "SELECT"));
+                SetButtonByName("Техосмотры в СЦ", _dbHelper.HasSelectPermission("inspections_by_service_center", "SELECT"));
+                SetButtonByName("Протоколы сотрудника", _dbHelper.HasSelectPermission("protocols_by_officer", "SELECT"));
+                SetButtonByName("Участники ДТП", _dbHelper.HasSelectPermission("accident_participants", "SELECT"));
+                SetButtonByName("Получить логи", _dbHelper.HasSelectPermission("logs", "DELETE"));
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Ошибка проверки прав доступа: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
-        #endregion
 
         #endregion
 
